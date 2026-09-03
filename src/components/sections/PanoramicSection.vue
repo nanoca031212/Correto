@@ -92,14 +92,33 @@ export default {
     onMounted(() => {
       const video = videoEl.value;
       if (video) {
-        video.addEventListener(
-          "loadedmetadata",
-          () => {
-            video.pause();
-            updateVideoFrame();
-          },
-          { once: true },
-        );
+        let ready = false;
+        const onReady = () => {
+          if (ready) return;
+          ready = true;
+          video.pause();
+          updateVideoFrame();
+        };
+
+        // Se os metadados já estiverem disponíveis (cache), dispara na hora;
+        // senão espera o primeiro evento que indique que já dá pra seekar.
+        // Alguns navegadores mobile não disparam "loadedmetadata" de forma
+        // confiável, então também escuta "canplay" como reforço.
+        if (video.readyState >= 1) {
+          onReady();
+        } else {
+          video.addEventListener("loadedmetadata", onReady, { once: true });
+          video.addEventListener("canplay", onReady, { once: true });
+        }
+
+        // "Aquece" o vídeo no mobile: iOS/Safari muitas vezes só carrega os
+        // dados do vídeo (mesmo com preload="auto") depois de uma tentativa
+        // de play - play+pause imediato é permitido pra vídeo mudo e evita
+        // o vídeo ficar em branco até o usuário interagir
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise.then(() => video.pause()).catch(() => {});
+        }
       }
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", onScroll, { passive: true });
