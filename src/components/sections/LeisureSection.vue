@@ -642,7 +642,7 @@ export default {
   padding: 14px 28px;
   background: white;
   color: #1a1a1a;
-  border: 2px solid #1a1a1a;
+  border: none;
   border-radius: 12px;
   font-weight: 500;
   text-decoration: none;
