@@ -1,0 +1,217 @@
+<template>
+  <section id="panoramica" class="panoramic section">
+    <div class="container">
+      <!-- Cabeçalho minimalista -->
+      <div class="section-header">
+        <BlurText tag="h2" class="section-title">
+          <span class="text-accent">Vista Panorâmica</span> e Implantação
+        </BlurText>
+        <BlurText tag="p" class="section-subtitle">
+          Conheça todos os detalhes do seu novo lar
+        </BlurText>
+      </div>
+
+      <!-- Vídeo Panorâmico (scrub por scroll) -->
+      <div class="panoramic-image-container">
+        <div class="panoramic-video-wrapper" ref="scrollWrapper">
+          <div class="panoramic-video-sticky" ref="stickyEl">
+            <video
+              ref="videoEl"
+              class="panoramic-video"
+              src="/animacao/animacao1.mp4"
+              muted
+              playsinline
+              preload="auto"
+            ></video>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
+<script>
+import { ref, onMounted, onUnmounted } from "vue";
+import BlurText from "../animations/BlurText.vue";
+
+export default {
+  name: "PanoramicSection",
+  components: {
+    BlurText,
+  },
+  setup() {
+    const scrollWrapper = ref(null);
+    const stickyEl = ref(null);
+    const videoEl = ref(null);
+    let ticking = false;
+
+    const updateVideoFrame = () => {
+      ticking = false;
+      const wrapper = scrollWrapper.value;
+      const sticky = stickyEl.value;
+      const video = videoEl.value;
+      if (
+        !wrapper ||
+        !sticky ||
+        !video ||
+        !video.duration ||
+        !isFinite(video.duration)
+      )
+        return;
+
+      const rect = wrapper.getBoundingClientRect();
+      // A faixa de scroll do "pin" é a altura do wrapper menos a altura real
+      // do elemento sticky (não a viewport - o sticky pode ser menor que 100vh)
+      const scrollableHeight = wrapper.offsetHeight - sticky.offsetHeight;
+
+      let progress;
+      if (window.innerWidth <= 768) {
+        // Mobile: começa a avançar o vídeo nos últimos 150px de aproximação
+        // ao travamento, pra não ficar parado no frame inicial (quase em
+        // branco) por muito tempo - mas só depois do cabeçalho já ter saído
+        // de tela, senão sobrepõe o texto. Desktop mantém o comportamento
+        // original (só avança quando 100% travado).
+        const leadIn = 150;
+        const activeRange = leadIn + scrollableHeight;
+        progress = activeRange > 0 ? (leadIn - rect.top) / activeRange : 0;
+      } else {
+        progress = scrollableHeight > 0 ? -rect.top / scrollableHeight : 0;
+      }
+      progress = Math.min(Math.max(progress, 0), 1);
+
+      video.currentTime = progress * video.duration;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        window.requestAnimationFrame(updateVideoFrame);
+      }
+    };
+
+    onMounted(() => {
+      const video = videoEl.value;
+      if (video) {
+        video.addEventListener(
+          "loadedmetadata",
+          () => {
+            video.pause();
+            updateVideoFrame();
+          },
+          { once: true },
+        );
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    });
+
+    return {
+      scrollWrapper,
+      stickyEl,
+      videoEl,
+    };
+  },
+};
+</script>
+
+<style scoped>
+.panoramic {
+  padding: 50px 0 0;
+  background: #f8f8f8;
+  position: relative;
+  z-index: 10;
+  /* .section (global) sets overflow:hidden + transform:translateZ(0), which
+     breaks position:sticky's containing block for the video scrub below */
+  overflow: visible;
+  transform: none;
+}
+
+/* Cabeçalho minimalista */
+.section-header {
+  text-align: center;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 300;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+  font-family:
+    "Source Sans 3",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.text-accent {
+  font-weight: 400;
+  color: #2d3748;
+}
+
+.section-subtitle {
+  font-size: 18px;
+  color: #6b7280;
+  font-weight: 300;
+  line-height: 1.6;
+  letter-spacing: -0.2px;
+}
+
+/* Container da Imagem/Vídeo Panorâmico */
+.panoramic-image-container {
+  position: relative;
+  margin-bottom: 0;
+}
+
+/* Área de scroll que controla o "scrub" do vídeo */
+.panoramic-video-wrapper {
+  position: relative;
+  height: 160vh;
+}
+
+/* Vídeo fica travado (pinned) no topo enquanto a área acima é scrollada */
+.panoramic-video-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.panoramic-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .panoramic {
+    padding: 30px 0 0;
+  }
+
+  .panoramic-video-wrapper {
+    height: 175vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .panoramic-image-container {
+    margin: 0 -16px;
+  }
+
+  .panoramic-video-sticky {
+    border-radius: 0;
+  }
+}
+</style>
