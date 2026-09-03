@@ -153,6 +153,18 @@
       <!-- Destaque especial -->
       <div class="leisure-highlight-container">
         <div class="leisure-highlight">
+          <!-- Carrossel de fundo (fade entre imagens) -->
+          <div class="highlight-bg">
+            <div
+              v-for="(img, index) in bgImages"
+              :key="img"
+              class="highlight-bg-slide"
+              :class="{ 'is-active': index === bgIndex }"
+              :style="{ backgroundImage: `url(${img})` }"
+            ></div>
+            <div class="highlight-bg-overlay"></div>
+          </div>
+
           <div class="highlight-content">
             <h3 class="highlight-title">Viva momentos únicos</h3>
             <div class="highlight-main-copy">
@@ -174,6 +186,19 @@
                   Fale Conosco
                 </button>
               </div>
+            </div>
+
+            <!-- Indicadores do carrossel de fundo -->
+            <div class="highlight-carousel-dots">
+              <button
+                v-for="(img, index) in bgImages"
+                :key="'dot-' + img"
+                type="button"
+                class="highlight-dot"
+                :class="{ active: index === bgIndex }"
+                @click="setBgIndex(index)"
+                :aria-label="'Ver imagem ' + (index + 1)"
+              ></button>
             </div>
           </div>
         </div>
@@ -217,6 +242,30 @@ export default {
     const leisureGridEl = ref(null)
     let leisureObserver = null
 
+    const bgImages = [
+      '/bgcard/sala.jpg',
+      '/bgcard/cozinha.jpg',
+      '/bgcard/quarto.jpg',
+      '/bgcard/banheiro.jpg'
+    ]
+    const bgIndex = ref(0)
+    let bgInterval = null
+
+    const startBgCarousel = () => {
+      if (bgInterval) clearInterval(bgInterval)
+      const reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduceMotion) return
+      bgInterval = setInterval(() => {
+        bgIndex.value = (bgIndex.value + 1) % bgImages.length
+      }, 4000)
+    }
+
+    const setBgIndex = (index) => {
+      bgIndex.value = index
+      startBgCarousel()
+    }
+
     const showTourModal = ref(false)
 
     const openTour = () => {
@@ -259,6 +308,8 @@ export default {
     }
 
     onMounted(() => {
+      startBgCarousel()
+
       // Track leisure section view
       trackEvent('ViewContent', {
         content_category: 'real_estate',
@@ -295,6 +346,7 @@ export default {
 
     onUnmounted(() => {
       if (leisureObserver) leisureObserver.disconnect()
+      if (bgInterval) clearInterval(bgInterval)
       document.removeEventListener('keydown', handleKeydown)
       document.body.style.overflow = ''
     })
@@ -304,7 +356,10 @@ export default {
       openWhatsApp,
       showTourModal,
       openTour,
-      closeTour
+      closeTour,
+      bgImages,
+      bgIndex,
+      setBgIndex
     }
   }
 }
@@ -432,11 +487,67 @@ export default {
   margin: 80px 0;
   position: relative;
   background: #F8F8F8;
+  overflow: hidden;
+}
+
+/* Carrossel de fundo (crossfade entre imagens) */
+.highlight-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.highlight-bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.highlight-bg-slide.is-active {
+  opacity: 1;
+}
+
+.highlight-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 15, 15, 0.6), rgba(15, 15, 15, 0.72));
 }
 
 .highlight-content {
   max-width: 700px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.highlight-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2.5rem;
+}
+
+.highlight-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.highlight-dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.highlight-dot.active {
+  background: #44b319;
+  transform: scale(1.3);
 }
 
 .highlight-title {
@@ -444,7 +555,7 @@ export default {
   font-weight: 300;
   margin-bottom: 2rem;
   letter-spacing: -0.5px;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .highlight-main-copy {
@@ -455,7 +566,7 @@ export default {
   font-size: 1.25rem;
   margin-bottom: 1rem;
   line-height: 1.6;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .highlight-secondary {
@@ -463,7 +574,7 @@ export default {
   margin-bottom: 1.5rem;
   opacity: 0.9;
   line-height: 1.6;
-  color: #4b5563;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .highlight-buttons {
@@ -530,8 +641,8 @@ export default {
   gap: 8px;
   padding: 14px 28px;
   background: white;
-  color: #44b319;
-  border: 2px solid #44b319;
+  color: #1a1a1a;
+  border: 2px solid #1a1a1a;
   border-radius: 12px;
   font-weight: 500;
   text-decoration: none;
@@ -541,10 +652,10 @@ export default {
 }
 
 .btn-primary:hover {
-  background: #44b319;
+  background: #1a1a1a;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(68, 179, 25, 0.2);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -604,6 +715,10 @@ export default {
 
 @media (prefers-reduced-motion: reduce) {
   .amenity-card {
+    transition: none;
+  }
+
+  .highlight-bg-slide {
     transition: none;
   }
 }
