@@ -196,6 +196,7 @@
                 type="button"
                 class="highlight-dot"
                 :class="{ active: index === bgIndex }"
+                :style="{ backgroundImage: `url(${img})` }"
                 @click="setBgIndex(index)"
                 :aria-label="'Ver imagem ' + (index + 1)"
               ></button>
@@ -526,28 +527,32 @@ export default {
 .highlight-carousel-dots {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
   margin-top: 2.5rem;
 }
 
 .highlight-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.35);
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-color: rgba(255, 255, 255, 0.1);
+  background-size: cover;
+  background-position: center;
   padding: 0;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.3s ease;
+  opacity: 0.55;
+  transition: opacity 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
 }
 
 .highlight-dot:hover {
-  background: rgba(255, 255, 255, 0.6);
+  opacity: 0.85;
 }
 
 .highlight-dot.active {
-  background: #44b319;
-  transform: scale(1.3);
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.06);
 }
 
 .highlight-title {
@@ -587,75 +592,56 @@ export default {
 .btn-tour {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 10px;
   padding: 16px 32px;
-  background: #44b319;
-  color: white;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  text-decoration: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  color: #1a1a1a;
   border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.1px;
+  text-decoration: none;
+  transition: all 0.3s ease;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(68, 179, 25, 0.25);
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-tour::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s;
+  min-width: 200px;
 }
 
 .btn-tour:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(68, 179, 25, 0.35);
-  background: #3a9916;
-}
-
-.btn-tour:hover::before {
-  transform: translateX(100%);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
 }
 
 .btn-tour svg {
-  width: 24px;
-  height: 24px;
-  transition: transform 0.4s ease;
-}
-
-.btn-tour:hover svg {
-  transform: rotate(180deg);
+  width: 20px;
+  height: 20px;
 }
 
 .btn-primary {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
-  background: white;
-  color: #1a1a1a;
-  border: none;
-  border-radius: 12px;
-  font-weight: 500;
+  padding: 16px 32px;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.1px;
   text-decoration: none;
   transition: all 0.3s ease;
   cursor: pointer;
-  font-size: 1rem;
+  backdrop-filter: blur(10px);
+  min-width: 200px;
 }
 
 .btn-primary:hover {
-  background: #1a1a1a;
-  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -675,6 +661,19 @@ export default {
   
   .highlight-content {
     padding: 30px 20px;
+  }
+
+  .highlight-title {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .highlight-primary {
+    font-size: 1rem;
+  }
+
+  .highlight-secondary {
+    font-size: 0.9rem;
   }
 }
 

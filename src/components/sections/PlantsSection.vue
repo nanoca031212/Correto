@@ -10,120 +10,85 @@
       </SplitText>
     </div>
     
-    <!-- Carrossel de Cards -->
-    <div class="carousel-container">
-      <div 
-        class="carousel-wrapper"
-        @mousedown="startDrag"
-        @mousemove="handleDrag"
-        @mouseup="endDrag"
-        @mouseleave="endDrag"
-        @touchstart="startCarouselTouch"
-        @touchmove="handleCarouselTouchMove"
-        @touchend="endCarouselTouch"
-        ref="carouselWrapper"
+    <!-- Galeria em acordeão (visão padrão) -->
+    <div v-if="viewMode === 'gallery'" class="accordion-gallery" role="list" aria-label="Plantas dos apartamentos">
+      <div
+        v-for="(plant, index) in plants"
+        :key="plant.id"
+        class="ag-panel"
+        role="listitem"
+        tabindex="0"
+        :aria-label="plant.title"
+        @click="selectPlant(index)"
+        @keydown.enter="selectPlant(index)"
+        @keydown.space.prevent="selectPlant(index)"
       >
-        <div 
-          class="carousel-track" 
-          :class="{ 'dragging': isDragging }"
-          :style="{ 
-            transform: `translateX(-${currentIndex * cardWidth + dragOffset}px)`,
-            transition: isDragging ? 'none' : 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-          }"
-        >
-          <div 
-            v-for="(plant, index) in plants" 
-            :key="plant.id" 
-            class="plant-card"
-            :class="{ 
-              'active': index === currentIndex,
-              'next': index === currentIndex + 1,
-              'prev': index === currentIndex - 1,
-              'far': Math.abs(index - currentIndex) > 1
-            }"
-          >
-            <!-- Imagem da Planta -->
-            <div class="card-image">
-              <img :src="plant.image" :alt="plant.title">
-              <div class="card-overlay">
-                <span class="apartment-type">{{ plant.type }}</span>
-              </div>
-            </div>
-            
-            <!-- Conteúdo do Card -->
-            <div class="card-content">
-              <div class="card-header">
-                <h3 class="apartment-title">{{ plant.title }}</h3>
-                <div class="apartment-area">{{ plant.area }}</div>
-              </div>
-              
-              <p class="apartment-description">
-                {{ plant.description }}
-              </p>
-              
-              <!-- Features Grid -->
-              <div class="features-grid">
-                <div class="feature" v-for="feature in plant.features" :key="feature.text">
-                  <span class="icon" v-html="feature.icon"></span>
-                  <span>{{ feature.text }}</span>
-                </div>
-              </div>
-              
-              <!-- Botões de Ação -->
-              <div class="card-actions">
-                <button 
-                  @click="requestPlantInfo(plant.id)" 
-                  @mousedown.stop
-                  @touchstart.stop
-                  class="btn-primary"
-                >
-                  Solicitar Informações
-                </button>
-                <button 
-                  @click="viewDetails(plant.id)" 
-                  @mousedown.stop
-                  @touchstart.stop
-                  class="btn-secondary"
-                >
-                  Ver Planta Detalhada
-                </button>
-              </div>
-            </div>
+        <span class="ag-panel__frame">
+          <span class="ag-panel__media">
+            <img :src="plant.image" :alt="plant.title" draggable="false">
+          </span>
+          <span class="ag-panel__overlay" aria-hidden="true"></span>
+        </span>
+        <span class="ag-panel__label">
+          <span class="ag-panel__bar"></span>
+          <span class="ag-panel__text">{{ plant.title }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Card único da planta selecionada (após clicar na galeria) -->
+    <div v-else class="single-plant-container">
+      <button type="button" class="back-to-gallery" @click="backToGallery">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"></polyline>
+        </svg>
+        Voltar para todas as plantas
+      </button>
+
+      <div class="plant-card active single">
+        <!-- Imagem da Planta -->
+        <div class="card-image">
+          <img :src="selectedPlantData.image" :alt="selectedPlantData.title">
+          <div class="card-overlay">
+            <span class="apartment-type">{{ selectedPlantData.type }}</span>
           </div>
         </div>
-      </div>
-      
-      <!-- Controles de Navegação -->
-      <div class="carousel-controls">
-        <button 
-          @click="previousSlide" 
-          class="nav-button prev"
-          :disabled="currentIndex === 0"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="15,18 9,12 15,6"></polyline>
-          </svg>
-        </button>
-        
-        <div class="carousel-indicators">
-          <button 
-            v-for="(plant, index) in plants" 
-            :key="index"
-            @click="goToSlide(index)"
-            class="indicator"
-            :class="{ 'active': index === currentIndex }"
-          ></button>
+
+        <!-- Conteúdo do Card -->
+        <div class="card-content">
+          <div class="card-header">
+            <h3 class="apartment-title">{{ selectedPlantData.title }}</h3>
+            <div class="apartment-area">{{ selectedPlantData.area }}</div>
+          </div>
+
+          <p class="apartment-description">
+            {{ selectedPlantData.description }}
+          </p>
+
+          <!-- Features Grid -->
+          <div class="features-grid">
+            <div class="feature" v-for="feature in selectedPlantData.features" :key="feature.text">
+              <span class="icon" v-html="feature.icon"></span>
+              <span>{{ feature.text }}</span>
+            </div>
+          </div>
+
+          <!-- Botões de Ação -->
+          <div class="card-actions">
+            <button
+              @click="requestPlantInfo(selectedPlantData.id)"
+              class="btn-primary"
+            >
+              Solicitar Informações
+            </button>
+            <button
+              @click="viewDetails(selectedPlantData.id)"
+              class="btn-secondary"
+            >
+              Ver Planta Detalhada
+            </button>
+          </div>
         </div>
-        
-        <button 
-          @click="nextSlide" 
-          class="nav-button next"
-          :disabled="currentIndex === plants.length - 1"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9,18 15,12 9,6"></polyline>
-          </svg>
-        </button>
       </div>
     </div>
 
@@ -220,7 +185,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useFacebookTracking } from '../../composables/useFacebookTracking'
 import SplitText from '../animations/SplitText.vue'
 
@@ -239,6 +204,8 @@ export default {
     } = useFacebookTracking()
     
     const currentIndex = ref(0)
+    const viewMode = ref('gallery') // 'gallery' | 'detail'
+    const selectedPlantIndex = ref(0)
     const cardWidth = ref(400)
     const showModal = ref(false)
     const selectedPlant = ref(null)
@@ -527,6 +494,22 @@ export default {
       }, 150)
     }
     
+    const selectedPlantData = computed(() => plants.value[selectedPlantIndex.value])
+
+    const selectPlant = (index) => {
+      selectedPlantIndex.value = index
+      viewMode.value = 'detail'
+
+      const plant = plants.value[index]
+      if (plant) {
+        trackViewContent('property', plant.id, plant.price ? parseInt(plant.price.replace(/\D/g, '')) : 240000)
+      }
+    }
+
+    const backToGallery = () => {
+      viewMode.value = 'gallery'
+    }
+
     const requestPlantInfo = (plantId) => {
       // Track form start
       trackFormStart()
@@ -881,6 +864,11 @@ export default {
     return {
       plants,
       currentIndex,
+      viewMode,
+      selectedPlantIndex,
+      selectedPlantData,
+      selectPlant,
+      backToGallery,
       cardWidth,
       showModal,
       selectedPlant,
@@ -957,7 +945,7 @@ export default {
 }
 
 .text-accent {
-  color: #44b319;
+  color: #161616;
 }
 
 .section-subtitle {
@@ -966,6 +954,174 @@ export default {
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+}
+
+/* Galeria em acordeão */
+.accordion-gallery {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 4rem;
+  height: 420px;
+}
+
+.ag-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  cursor: pointer;
+  outline: none;
+  background: #0a0713;
+  transition: flex-grow 0.5s ease;
+}
+
+.ag-panel:hover,
+.ag-panel:focus-visible {
+  flex-grow: 4;
+}
+
+.ag-panel:focus-visible {
+  box-shadow: 0 0 0 2px #44b319;
+}
+
+.ag-panel__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ag-panel__media {
+  position: absolute;
+  inset: 0;
+}
+
+.ag-panel__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(1);
+  transition: filter 0.5s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.ag-panel:hover .ag-panel__media img,
+.ag-panel:focus-visible .ag-panel__media img {
+  filter: grayscale(0);
+}
+
+.ag-panel__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 45%, rgba(6, 0, 16, 0.85) 100%);
+}
+
+.ag-panel__label {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.ag-panel:hover .ag-panel__label,
+.ag-panel:focus-visible .ag-panel__label {
+  opacity: 1;
+}
+
+.ag-panel__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  height: 26px;
+  border-radius: 3px;
+  background: #ffffff;
+}
+
+.ag-panel__text {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 1.4vw, 1.2rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+/* Card único da planta selecionada */
+.single-plant-container {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.back-to-gallery {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #161616;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0 auto 1.5rem;
+  padding: 8px 0;
+  transition: gap 0.2s ease;
+}
+
+.back-to-gallery:hover {
+  gap: 12px;
+}
+
+.plant-card.single {
+  width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .accordion-gallery {
+    flex-direction: column;
+    height: auto;
+    padding: 0 1.5rem;
+    gap: 12px;
+  }
+
+  .ag-panel {
+    flex: none;
+    height: 88px;
+  }
+
+  .ag-panel:hover,
+  .ag-panel:focus-visible {
+    flex-grow: 0;
+  }
+
+  .ag-panel__media img {
+    filter: grayscale(0);
+  }
+
+  .ag-panel__label {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-panel,
+  .ag-panel__media img,
+  .ag-panel__label {
+    transition: none;
+  }
 }
 
 /* Carousel Container */
