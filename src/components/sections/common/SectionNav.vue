@@ -71,9 +71,9 @@ const SECTIONS = [
 export default {
   name: "SectionNav",
   setup() {
-    const { scrollY, showHeader } = useScrollHeaderState();
+    const { scrollY, showHeader, navBarsForceHidden } = useScrollHeaderState();
 
-    const isVisible = computed(() => !showHeader.value);
+    const isVisible = computed(() => !showHeader.value && !navBarsForceHidden.value);
     const currentIndex = ref(0);
 
     const updateCurrentSection = () => {

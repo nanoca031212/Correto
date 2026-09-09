@@ -755,7 +755,7 @@ export default {
 .tour-modal-close {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 12px;
   z-index: 1;
   width: 40px;
   height: 40px;

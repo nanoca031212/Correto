@@ -92,101 +92,36 @@
       </div>
     </div>
 
-    <!-- Modal para Visualizar Planta -->
-    <div v-if="showModal" class="plant-modal" @click="closeModal">
-      <div class="modal-content" @click.stop>
-        <!-- Botão Fechar - Sempre visível -->
-        <button @click="closeModal" class="close-button">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-
-        <!-- Controles de Zoom -->
-        <div class="zoom-controls">
-          <button @click="zoomIn" class="zoom-btn" title="Aumentar zoom">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-              <line x1="11" y1="8" x2="11" y2="14"></line>
-              <line x1="8" y1="11" x2="14" y2="11"></line>
-            </svg>
-          </button>
-          <button @click="zoomOut" class="zoom-btn" title="Diminuir zoom">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-              <line x1="8" y1="11" x2="14" y2="11"></line>
-            </svg>
-          </button>
-          <button @click="resetZoom" class="zoom-btn" title="Resetar zoom">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-              <path d="M3 3v5h5"></path>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Indicador de Zoom -->
-        <div class="zoom-indicator" v-if="zoomLevel !== 1">
-          {{ Math.round(zoomLevel * 100) }}%
-        </div>
-
-        <!-- Aviso de Rotação (apenas mobile) -->
-        <div v-if="isMobile && isPortrait && showRotationHint" class="rotation-hint">
-          <div class="rotation-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c1.66 0 3.2.45 4.53 1.24"/>
-              <path d="M17 3l4 4-4 4"/>
-            </svg>
+    <!-- Alert Dialog (padrão shadcn/ui): foto em cima, botões embaixo -->
+    <Teleport to="body">
+      <div v-if="showModal" class="ad-overlay" @click="closeModal">
+        <div class="ad-content" @click.stop role="alertdialog" aria-modal="true">
+          <div class="ad-image-wrap">
+            <img
+              :src="selectedPlant?.image"
+              :alt="selectedPlant?.title"
+              class="ad-image"
+            >
           </div>
-          <p>Gire o celular para melhor visualização</p>
-        </div>
 
-        <!-- Imagem da Planta -->
-        <div 
-          class="modal-image-container" 
-          @wheel="handleWheel"
-          @mousedown="startPan"
-          @mousemove="handlePan"
-          @mouseup="endPan"
-          @mouseleave="endPan"
-          @touchstart="startTouch"
-          @touchmove="handleTouch"
-          @touchend="endTouch"
-          ref="imageContainer"
-        >
-          <img 
-            :src="selectedPlant?.image" 
-            :alt="selectedPlant?.title" 
-            class="modal-image"
-            :class="{ 'image-loaded': imageLoaded }"
-            :style="{
-              transform: `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`,
-              cursor: zoomLevel > 1 ? (isPanning ? 'grabbing' : 'grab') : 'zoom-in'
-            }"
-            @click="handleImageClick"
-            @load="onImageLoad"
-            draggable="false"
-          >
-        </div>
-
-        <!-- Instruções de Uso simplificadas -->
-        <div class="usage-instructions" v-if="!isMobile">
-          <p>🖱️ Scroll para zoom • 🖐️ Arraste para mover</p>
-        </div>
-        <div class="usage-instructions mobile" v-else>
-          <p>📱 Pinça para zoom • 👆 Arraste para mover</p>
+          <div class="ad-footer">
+            <button type="button" class="ad-btn ad-btn-outline" @click="closeModal">
+              Fechar
+            </button>
+            <button type="button" class="ad-btn ad-btn-solid" @click="handleRequestFromModal">
+              Solicitar Informações
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </section>
 </template>
 
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useFacebookTracking } from '../../composables/useFacebookTracking'
+import { setHeaderForceHidden } from '../../composables/useScrollHeaderState'
 import SplitText from '../animations/SplitText.vue'
 
 export default {
@@ -209,25 +144,12 @@ export default {
     const cardWidth = ref(400)
     const showModal = ref(false)
     const selectedPlant = ref(null)
-    const isMobile = ref(false)
-    const isPortrait = ref(true)
-    const zoomLevel = ref(1)
-    const panX = ref(0)
-    const panY = ref(0)
-    const isPanning = ref(false)
-    const lastPanX = ref(0)
-    const lastPanY = ref(0)
-    const panVelocityX = ref(0)
-    const panVelocityY = ref(0)
-    const panMomentum = ref(false)
     const dragOffset = ref(0)
     const isDragging = ref(false)
     const dragStartX = ref(0)
     const dragStartY = ref(0)
     const dragThreshold = 50 // Distância mínima para trocar slide
-    const showRotationHint = ref(true)
-    const imageLoaded = ref(false)
-    
+
     const plants = ref([
       {
         id: 'planta-2q-49m',
@@ -419,11 +341,6 @@ export default {
       }
     }
 
-    const checkOrientation = () => {
-      isMobile.value = window.innerWidth <= 768
-      isPortrait.value = window.innerHeight > window.innerWidth
-    }
-    
     const nextSlide = () => {
       if (currentIndex.value < plants.value.length - 1) {
         // Adiciona classe de animação antes de mudar
@@ -537,22 +454,11 @@ export default {
       if (plant) {
         // Track floor plan view
         trackFloorPlanView(plantId)
-        
-        // Reset states
-        imageLoaded.value = false
-        zoomLevel.value = 1
-        panX.value = 0
-        panY.value = 0
-        
+
         selectedPlant.value = plant
         showModal.value = true
-        showRotationHint.value = true
         document.body.style.overflow = 'hidden'
-        
-        // Esconde o aviso de rotação após 3 segundos
-        setTimeout(() => {
-          showRotationHint.value = false
-        }, 3000)
+        setHeaderForceHidden(true) // header atrapalha por cima do overlay
       }
     }
 
@@ -560,6 +466,7 @@ export default {
       showModal.value = false
       selectedPlant.value = null
       document.body.style.overflow = 'auto'
+      setHeaderForceHidden(false)
     }
 
     const handleKeydown = (event) => {
@@ -567,189 +474,13 @@ export default {
         closeModal()
       }
     }
-    
-    const zoomIn = () => {
-      const newZoom = Math.min(3, zoomLevel.value + 0.2)
-      zoomLevel.value = newZoom
-      if (newZoom === 1) {
-        panX.value = 0
-        panY.value = 0
-      }
+
+    const handleRequestFromModal = () => {
+      const plantId = selectedPlant.value?.id
+      closeModal()
+      requestPlantInfo(plantId)
     }
     
-    const zoomOut = () => {
-      const newZoom = Math.max(0.5, zoomLevel.value - 0.2)
-      zoomLevel.value = newZoom
-      if (newZoom === 1) {
-        panX.value = 0
-        panY.value = 0
-      }
-    }
-    
-    const resetZoom = () => {
-      zoomLevel.value = 1
-      panX.value = 0
-      panY.value = 0
-      panMomentum.value = false
-    }
-    
-    const startPan = (event) => {
-      if (zoomLevel.value <= 1) return
-      
-      isPanning.value = true
-      panMomentum.value = false
-      
-      if (event instanceof MouseEvent) {
-        lastPanX.value = event.clientX
-        lastPanY.value = event.clientY
-      } else if (event instanceof TouchEvent && event.touches.length === 1) {
-        const touch = event.touches[0]
-        lastPanX.value = touch.clientX
-        lastPanY.value = touch.clientY
-      }
-      
-      panVelocityX.value = 0
-      panVelocityY.value = 0
-      event.preventDefault()
-    }
-    
-    const handlePan = (event) => {
-      if (!isPanning.value || zoomLevel.value <= 1) return
-      
-      let currentX = 0
-      let currentY = 0
-      
-      if (event instanceof MouseEvent) {
-        currentX = event.clientX
-        currentY = event.clientY
-      } else if (event instanceof TouchEvent && event.touches.length === 1) {
-        const touch = event.touches[0]
-        currentX = touch.clientX
-        currentY = touch.clientY
-      }
-      
-      const deltaX = currentX - lastPanX.value
-      const deltaY = currentY - lastPanY.value
-      
-      // Calcula velocidade para momentum
-      panVelocityX.value = deltaX * 0.8
-      panVelocityY.value = deltaY * 0.8
-      
-      // Aplica movimento com limites
-      const maxPanX = (zoomLevel.value - 1) * 200
-      const maxPanY = (zoomLevel.value - 1) * 150
-      
-      panX.value = Math.max(-maxPanX, Math.min(maxPanX, panX.value + deltaX))
-      panY.value = Math.max(-maxPanY, Math.min(maxPanY, panY.value + deltaY))
-      
-      lastPanX.value = currentX
-      lastPanY.value = currentY
-      
-      event.preventDefault()
-    }
-    
-    const endPan = () => {
-      if (!isPanning.value) return
-      
-      isPanning.value = false
-      
-      // Aplica momentum se a velocidade for significativa
-      if (Math.abs(panVelocityX.value) > 2 || Math.abs(panVelocityY.value) > 2) {
-        panMomentum.value = true
-        applyMomentum()
-      }
-    }
-    
-    const applyMomentum = () => {
-      if (!panMomentum.value) return
-      
-      const friction = 0.92
-      const threshold = 0.5
-      
-      panVelocityX.value *= friction
-      panVelocityY.value *= friction
-      
-      const maxPanX = (zoomLevel.value - 1) * 200
-      const maxPanY = (zoomLevel.value - 1) * 150
-      
-      panX.value = Math.max(-maxPanX, Math.min(maxPanX, panX.value + panVelocityX.value))
-      panY.value = Math.max(-maxPanY, Math.min(maxPanY, panY.value + panVelocityY.value))
-      
-      if (Math.abs(panVelocityX.value) > threshold || Math.abs(panVelocityY.value) > threshold) {
-        requestAnimationFrame(applyMomentum)
-      } else {
-        panMomentum.value = false
-      }
-    }
-    
-    const startTouch = (event) => {
-      if (event.touches.length === 1) {
-        // Pan com um dedo
-        startPan(event)
-      } else if (event.touches.length === 2) {
-        // Zoom com dois dedos (pinch)
-        const touch1 = event.touches[0]
-        const touch2 = event.touches[1]
-        const distance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) + 
-          Math.pow(touch2.clientY - touch1.clientY, 2)
-        )
-        lastPanX.value = distance
-        event.preventDefault()
-      }
-    }
-    
-    const handleTouch = (event) => {
-      if (event.touches.length === 1) {
-        // Pan com um dedo
-        handlePan(event)
-      } else if (event.touches.length === 2) {
-        // Zoom com dois dedos (pinch)
-        const touch1 = event.touches[0]
-        const touch2 = event.touches[1]
-        const distance = Math.sqrt(
-          Math.pow(touch2.clientX - touch1.clientX, 2) + 
-          Math.pow(touch2.clientY - touch1.clientY, 2)
-        )
-        
-        const scale = distance / lastPanX.value
-        const newZoom = zoomLevel.value * scale
-        
-        if (newZoom >= 0.5 && newZoom <= 3) {
-          zoomLevel.value = newZoom
-        }
-        
-        lastPanX.value = distance
-        event.preventDefault()
-      }
-    }
-    
-    const endTouch = () => {
-      endPan()
-    }
-    
-    const handleWheel = (event) => {
-      event.preventDefault()
-      
-      const zoomSpeed = 0.1
-      const delta = event.deltaY > 0 ? -zoomSpeed : zoomSpeed
-      const newZoom = Math.max(0.5, Math.min(3, zoomLevel.value + delta))
-      
-      zoomLevel.value = newZoom
-      
-      if (newZoom === 1) {
-        panX.value = 0
-        panY.value = 0
-      }
-    }
-    
-    const handleImageClick = (event) => {
-      if (zoomLevel.value === 1) {
-        zoomLevel.value = 2
-      } else {
-        resetZoom()
-      }
-    }
     
     const startDrag = (event) => {
       // Não inicia drag se clicou em um botão ou elemento interativo
@@ -833,32 +564,24 @@ export default {
       endDrag()
     }
     
-    const onImageLoad = () => {
-      imageLoaded.value = true
-    }
-    
     // Track initial plant view on mount
     onMounted(() => {
       updateCardWidth()
-      checkOrientation()
       window.addEventListener('resize', updateCardWidth)
-      window.addEventListener('resize', checkOrientation)
-      window.addEventListener('orientationchange', checkOrientation)
       document.addEventListener('keydown', handleKeydown)
-      
+
       // Track initial plant view
       if (plants.value.length > 0) {
         const firstPlant = plants.value[0]
         trackViewContent('property', firstPlant.id, firstPlant.price ? parseInt(firstPlant.price.replace(/\D/g, '')) : 240000)
       }
     })
-    
+
     onUnmounted(() => {
       window.removeEventListener('resize', updateCardWidth)
-      window.removeEventListener('resize', checkOrientation)
-      window.removeEventListener('orientationchange', checkOrientation)
       document.removeEventListener('keydown', handleKeydown)
       document.body.style.overflow = 'auto'
+      if (showModal.value) setHeaderForceHidden(false)
     })
     
     return {
@@ -872,29 +595,13 @@ export default {
       cardWidth,
       showModal,
       selectedPlant,
-      isMobile,
-      isPortrait,
       nextSlide,
       previousSlide,
       goToSlide,
       requestPlantInfo,
+      handleRequestFromModal,
       viewDetails,
       closeModal,
-      zoomLevel,
-      panX,
-      panY,
-      isPanning,
-      zoomIn,
-      zoomOut,
-      resetZoom,
-      startPan,
-      handlePan,
-      endPan,
-      startTouch,
-      handleTouch,
-      endTouch,
-      handleWheel,
-      handleImageClick,
       dragOffset,
       isDragging,
       dragStartX,
@@ -906,16 +613,7 @@ export default {
       handleTouchMove,
       startCarouselTouch,
       handleCarouselTouchMove,
-      endCarouselTouch,
-      showRotationHint,
-      lastPanX,
-      lastPanY,
-      panVelocityX,
-      panVelocityY,
-      panMomentum,
-      applyMomentum,
-      imageLoaded,
-      onImageLoad
+      endCarouselTouch
     }
   }
 }
@@ -1060,6 +758,7 @@ export default {
 
 /* Card único da planta selecionada */
 .single-plant-container {
+  position: relative;
   max-width: 440px;
   margin: 0 auto;
   padding: 0 1rem;
@@ -1099,7 +798,7 @@ export default {
 
   .ag-panel {
     flex: none;
-    height: 88px;
+    height: 90px;
   }
 
   .ag-panel:hover,
@@ -1663,343 +1362,110 @@ export default {
   }
 }
 
-/* Modal Styles */
-.plant-modal {
+/* Alert Dialog (padrão shadcn/ui): overlay escuro + card central,
+   foto em cima, botões (Fechar / Solicitar Informações) embaixo */
+.ad-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0);
+  inset: 0;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(0px);
-  animation: modalOverlay 0.6s ease-out forwards;
+  padding: 24px;
+  animation: adFadeIn 0.2s ease-out;
 }
 
-@keyframes modalOverlay {
-  0% {
-    background: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(0px);
-  }
-  100% {
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
-  }
+@keyframes adFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.modal-content {
-  position: relative;
-  width: 90%;
-  height: 90%;
-  max-width: 1200px;
-  max-height: 800px;
+.ad-content {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.8);
-  animation: modalContent 0.4s ease-out 0.3s forwards;
+  gap: 16px;
+  animation: adZoomIn 0.2s ease-out;
 }
 
-@keyframes modalContent {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes adZoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.close-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: #333;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  z-index: 1001;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  animation: buttonFadeIn 0.3s ease-out 0.7s forwards;
-}
-
-@keyframes buttonFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.close-button:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-}
-
-.rotation-hint {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: white;
-  z-index: 5;
-  transition: opacity 0.3s ease-out;
-}
-
-.rotation-icon {
-  margin-bottom: 1rem;
-  animation: rotate 0.9s ease-in-out;
-}
-
-.rotation-hint p {
-  font-size: 1rem;
-  margin: 0;
-  opacity: 0.9;
-}
-
-@keyframes rotate {
-  0% { 
-    transform: rotate(0deg);
-    opacity: 1;
-  }
-  50% { 
-    transform: rotate(180deg);
-    opacity: 1;
-  }
-  100% { 
-    transform: rotate(360deg);
-    opacity: 0;
-  }
-}
-
-.modal-image-container {
-  width: 100%;
-  height: 80%;
+.ad-image-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  touch-action: none;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  border-radius: 6px;
+  background: #f8f8f8;
 }
 
-.modal-image {
+.ad-image {
   max-width: 100%;
-  max-height: 100%;
+  max-height: 60vh;
   object-fit: contain;
-  border-radius: 8px;
-  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  opacity: 0;
-  transform: scale(0.9);
 }
 
-.modal-image.image-loaded {
-  animation: imageZoom 0.5s ease-out 0.7s forwards;
-}
-
-@keyframes imageZoom {
-  0% {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-info {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  color: white;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-}
-
-.modal-info h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.modal-info span {
-  color: #10b981;
-  font-weight: 600;
-}
-
-/* Mobile Modal Adjustments */
-@media (max-width: 768px) {
-  .modal-content {
-    width: 95%;
-    height: 95%;
-  }
-
-  .close-button {
-    top: 15px;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 2px solid rgba(0, 0, 0, 0.1);
-  }
-
-  .rotation-hint p {
-    font-size: 0.9rem;
-  }
-}
-
-/* Landscape Mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-  .rotation-hint {
-    display: none;
-  }
-  
-  .modal-image-container {
-    height: 85%;
-  }
-  
-  .close-button {
-    top: 10px;
-    right: 10px;
-    width: 40px;
-    height: 40px;
-  }
-}
-
-/* Zoom Controls */
-.zoom-controls {
+.ad-footer {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  opacity: 0;
-  animation: controlsFadeIn 0.3s ease-out 0.9s forwards;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-@keyframes controlsFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.zoom-btn {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #4a5568;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.ad-btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.zoom-btn:hover {
-  background: #10b981;
-  color: white;
-}
-
-/* Zoom Indicator */
-.zoom-indicator {
+.ad-btn-outline {
   background: #ffffff;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #059669;
-  opacity: 0;
-  animation: indicatorFadeIn 0.3s ease-out 1s forwards;
+  border-color: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
 }
 
-@keyframes indicatorFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+.ad-btn-outline:hover {
+  background: #f3f4f6;
 }
 
-/* Usage Instructions */
-.usage-instructions {
-  text-align: center;
-  margin-top: 1rem;
-  padding: 0 2rem;
-  opacity: 0;
-  animation: instructionsFadeIn 0.3s ease-out 1.1s forwards;
-}
-
-@keyframes instructionsFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.usage-instructions p {
-  margin: 0;
-  font-size: 0.875rem;
+.ad-btn-solid {
+  background: #1a1a1a;
   color: #ffffff;
-  opacity: 0.9;
 }
 
-.usage-instructions.mobile {
-  display: none;
+.ad-btn-solid:hover {
+  background: #2d2d2d;
 }
 
-@media (max-width: 768px) {
-  .usage-instructions.mobile {
-    display: block;
+@media (max-width: 480px) {
+  .ad-overlay {
+    padding: 12px;
+  }
+
+  .ad-content {
+    padding: 16px;
+  }
+
+  .ad-footer {
+    flex-direction: column-reverse;
+  }
+
+  .ad-btn {
+    width: 100%;
   }
 }
 </style> 

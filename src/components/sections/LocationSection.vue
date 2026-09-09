@@ -13,21 +13,6 @@
       
       <!-- Conteúdo principal -->
       <div class="location-content">
-        <!-- Vídeo Horizontal -->
-        <div class="video-container">
-          <video 
-            class="location-video"
-            controls
-            preload="metadata"
-            poster=""
-            playsinline
-            muted
-          >
-            <source src="https://pub-1d787a1c2d3d45bfa1d6c9e476359133.r2.dev/0606.mp4" type="video/mp4">
-            Seu navegador não suporta o elemento de vídeo.
-          </video>
-        </div>
-        
         <!-- Mapa -->
         <div class="map-container">
           <div class="map-embed" @click="handleMapClick">
@@ -339,20 +324,6 @@ export default {
 }
 
 /* Vídeo Horizontal */
-.video-container {
-  position: relative;
-  height: 400px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.location-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 /* Mapa */
 .map-container {
   position: relative;
