@@ -18,7 +18,7 @@
             <video
               ref="videoEl"
               class="panoramic-video"
-              src="/animacao/animacao1.mp4"
+              src="/animacao/animacao2.mp4"
               muted
               playsinline
               preload="auto"
