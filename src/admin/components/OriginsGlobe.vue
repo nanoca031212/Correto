@@ -153,7 +153,9 @@ export default {
       controls.enableDamping = true
       controls.dampingFactor = 0.08
       controls.enablePan = false
-      controls.enableZoom = true
+      // Sem zoom pela roda do mouse - o scroll em cima do globo nao pode
+      // "sequestrar" o scroll normal da pagina. So gira arrastando.
+      controls.enableZoom = false
       controls.minDistance = 1.8
       controls.maxDistance = 6
       controls.autoRotate = true
