@@ -37,8 +37,17 @@
       </div>
     </div>
 
-    <h2 class="admin-section-title">Plantas mais visualizadas</h2>
-    <SimpleGraph :data="plants" />
+    <h2 class="admin-section-title">Visualizações de plantas nos últimos 7 dias</h2>
+    <SimpleGraph :data="plantViews7d" unit="visualizações de plantas" />
+
+    <h2 class="admin-section-title">Plantas mais vistas</h2>
+    <div class="admin-card admin-card-flush">
+      <div class="plant-rank-row" v-for="(plant, i) in plantsRanking" :key="plant.name">
+        <span class="plant-rank-number">{{ i + 1 }}</span>
+        <span class="plant-rank-name">{{ plant.name }}</span>
+        <span class="plant-rank-value">{{ plant.views }} visualizações</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -81,12 +90,21 @@ export default {
         { id: 9, type: 'whatsapp', name: 'Ricardo Alves', description: 'clicou em "Falar no WhatsApp"', source: 'Facebook Ads', date: 'Ontem, 14:40' },
         { id: 10, type: 'form', name: 'Ricardo Alves', description: 'preencheu o formulário de contato', source: 'Facebook Ads', date: 'Ontem, 14:37' }
       ],
-      plants: [
-        { label: 'Garden 74,10m²', value: 68 },
-        { label: '51,76m²', value: 54 },
-        { label: 'Garden 64,78m²', value: 41 },
-        { label: 'Garden 58,75m²', value: 32 },
-        { label: '49,5m²', value: 19 }
+      plantViews7d: [
+        { label: 'Seg', value: 22 },
+        { label: 'Ter', value: 31 },
+        { label: 'Qua', value: 26 },
+        { label: 'Qui', value: 38 },
+        { label: 'Sex', value: 34 },
+        { label: 'Sáb', value: 44 },
+        { label: 'Dom', value: 41 }
+      ],
+      plantsRanking: [
+        { name: 'Apartamento Garden 74,10m²', views: 68 },
+        { name: 'Apartamento 51,76m²', views: 54 },
+        { name: 'Apartamento Garden 64,78m²', views: 41 },
+        { name: 'Apartamento Garden 58,75m²', views: 32 },
+        { name: 'Apartamento 49,5m²', views: 19 }
       ]
     }
   },
@@ -203,4 +221,41 @@ export default {
   color: #a1a1aa;
 }
 
+.plant-rank-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f2f2f3;
+}
+
+.plant-rank-row:last-child {
+  border-bottom: none;
+}
+
+.plant-rank-number {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f0f1f0;
+  color: #52525b;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plant-rank-name {
+  flex: 1;
+  font-size: 13.5px;
+  color: #18181b;
+  font-weight: 500;
+}
+
+.plant-rank-value {
+  font-size: 12.5px;
+  color: #71717a;
+}
 </style>

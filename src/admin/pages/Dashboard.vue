@@ -39,13 +39,19 @@
       </table>
     </div>
 
-    <h2 class="admin-section-title">Visão geral das seções mais vistas</h2>
-    <SimpleGraph :data="sections" />
+    <h2 class="admin-section-title">Visualizações nos últimos 7 dias</h2>
+    <SimpleGraph :data="views7d" unit="visualizações" />
+
+    <h2 class="admin-section-title">Origem dos clientes</h2>
+    <div class="admin-card">
+      <OriginsGlobe />
+    </div>
   </div>
 </template>
 
 <script>
 import SimpleGraph from '../components/SimpleGraph.vue'
+import OriginsGlobe from '../components/OriginsGlobe.vue'
 
 const ICON_EYE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
 const ICON_USERS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.3a3.2 3.2 0 0 1 0 6.2M22 20c0-3-1.9-5.2-4.5-5.8"/></svg>'
@@ -54,7 +60,7 @@ const ICON_COIN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" s
 
 export default {
   name: 'AdminDashboard',
-  components: { SimpleGraph },
+  components: { SimpleGraph, OriginsGlobe },
   data() {
     return {
       stats: [
@@ -70,12 +76,14 @@ export default {
         { name: 'Ricardo Alves', source: 'Facebook Ads', interest: '2 quartos', date: 'Ontem, 14:37', status: 'Novo', badgeClass: 'admin-badge-pending' },
         { name: 'Juliana Prado', source: 'Site direto', interest: 'Área de lazer', date: '2 dias atrás', status: 'Perdido', badgeClass: 'admin-badge-off' }
       ],
-      sections: [
-        { label: 'Plantas', value: 78 },
-        { label: 'Área de Lazer', value: 64 },
-        { label: 'Vista Panorâmica', value: 52 },
-        { label: 'Localização', value: 41 },
-        { label: 'Contato', value: 33 }
+      views7d: [
+        { label: 'Seg', value: 980 },
+        { label: 'Ter', value: 1120 },
+        { label: 'Qua', value: 860 },
+        { label: 'Qui', value: 1240 },
+        { label: 'Sex', value: 1080 },
+        { label: 'Sáb', value: 1360 },
+        { label: 'Dom', value: 1510 }
       ]
     }
   }

@@ -13,6 +13,7 @@
       </span>
     </div>
 
+    <div class="sg-chart-area" :style="{ height: height + 'px' }">
     <svg
       class="sg-svg"
       :viewBox="`0 0 ${vbWidth} ${vbHeight}`"
@@ -59,7 +60,13 @@
       />
 
       <g v-if="showDots">
-        <g v-for="(p, i) in points" :key="'dot' + i" class="sg-dot-group">
+        <g
+          v-for="(p, i) in points"
+          :key="'dot' + i"
+          class="sg-dot-group"
+          @mouseenter="hoveredIndex = i"
+          @mouseleave="hoveredIndex = null"
+        >
           <circle
             class="sg-dot-halo"
             :cx="p.x"
@@ -78,12 +85,25 @@
             :stroke="ringColor"
             :stroke-width="2"
             :style="{ opacity: played ? 1 : 0, transitionDelay: played ? (i * 35) + 'ms' : '0ms' }"
-          >
-            <title>{{ p.label }}: {{ p.value }}</title>
-          </circle>
+          />
+          <!-- area de hover maior e invisivel, so pra facilitar acertar o dot -->
+          <circle class="sg-dot-hit" :cx="p.x" :cy="p.y" :r="Math.max(dotSize + 10, 16)" fill="transparent" />
         </g>
       </g>
     </svg>
+
+    <div
+      v-if="hoveredPoint"
+      class="sg-tooltip"
+      :style="{
+        left: (hoveredPoint.x / vbWidth) * 100 + '%',
+        top: (hoveredPoint.y / vbHeight) * 100 + '%'
+      }"
+    >
+      <strong>{{ hoveredPoint.label }}</strong>
+      <span>{{ tooltipText(hoveredPoint) }}</span>
+    </div>
+    </div>
 
     <div class="sg-labels" v-if="showLabels">
       <span v-for="(p, i) in points" :key="'lbl' + i">{{ p.label }}</span>
@@ -99,7 +119,7 @@ export default {
   props: {
     data: { type: Array, required: true }, // [{ label, value }]
     height: { type: Number, default: 220 },
-    lineColor: { type: String, default: '#8b7cf6' },
+    lineColor: { type: String, default: '#6fd93f' },
     dotColor: { type: String, default: '' },
     ringColor: { type: String, default: 'rgba(255,255,255,0.55)' },
     graphLineThickness: { type: Number, default: 2.5 },
@@ -115,7 +135,11 @@ export default {
     animateOnScroll: { type: Boolean, default: true },
     animateOnce: { type: Boolean, default: true },
     dotHoverGlow: { type: Boolean, default: true },
-    calculatePercentageDifference: { type: Boolean, default: true }
+    calculatePercentageDifference: { type: Boolean, default: true },
+    // Unidade mostrada no tooltip ao passar o mouse num ponto, ex.: "visualizações"
+    unit: { type: String, default: '' },
+    // Formatador customizado do texto do tooltip: (point) => string
+    tooltipFormatter: { type: Function, default: null }
   },
   data() {
     uid += 1
@@ -123,7 +147,8 @@ export default {
       gradientId: `sg-grad-${uid}`,
       played: !this.animateOnScroll,
       lineLength: 0,
-      observer: null
+      observer: null,
+      hoveredIndex: null
     }
   },
   computed: {
@@ -190,6 +215,9 @@ export default {
         strokeDashoffset: this.played ? 0 : this.lineLength,
         transition: `stroke-dashoffset ${this.animationDuration}ms ease`
       }
+    },
+    hoveredPoint() {
+      return this.hoveredIndex === null ? null : this.points[this.hoveredIndex]
     }
   },
   mounted() {
@@ -233,6 +261,11 @@ export default {
         d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`
       }
       return d
+    },
+    tooltipText(point) {
+      if (this.tooltipFormatter) return this.tooltipFormatter(point)
+      const value = typeof point.value === 'number' ? point.value.toLocaleString('pt-BR') : point.value
+      return this.unit ? `${value} ${this.unit}` : `${value}`
     }
   }
 }
@@ -273,6 +306,10 @@ export default {
   background: rgba(248, 113, 113, 0.14);
 }
 
+.sg-chart-area {
+  position: relative;
+}
+
 .sg-svg {
   width: 100%;
   display: block;
@@ -297,9 +334,43 @@ export default {
   transition: opacity 0.35s ease, r 0.15s ease;
 }
 
+.sg-dot-group {
+  cursor: pointer;
+}
+
 .sg-dot.glow:hover {
   r: 8;
   filter: drop-shadow(0 0 6px currentColor);
+}
+
+.sg-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 14px));
+  background: #1c1c1f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  z-index: 2;
+}
+
+.sg-tooltip strong {
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.sg-tooltip span {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
 }
 
 .sg-labels {
