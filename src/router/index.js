@@ -18,6 +18,11 @@ const routes = [
         component: () => import('../admin/pages/Dashboard.vue')
       },
       {
+        path: 'atividades',
+        name: 'admin-atividades',
+        component: () => import('../admin/pages/Atividades.vue')
+      },
+      {
         path: 'mcp',
         name: 'admin-mcp',
         component: () => import('../admin/pages/Mcp.vue')

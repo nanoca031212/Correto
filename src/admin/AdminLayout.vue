@@ -16,6 +16,11 @@
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.3"/><rect x="14" y="3" width="7" height="5" rx="1.3"/><rect x="14" y="12" width="7" height="9" rx="1.3"/><rect x="3" y="16" width="7" height="5" rx="1.3"/></svg>
             <span>Dashboard</span>
           </router-link>
+
+          <router-link to="/admin/atividades" class="admin-nav-item">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V10M11 19V5M18 19v-7"/></svg>
+            <span>Atividades</span>
+          </router-link>
         </div>
 
         <div class="admin-nav-group">
@@ -60,6 +65,11 @@ const PAGE_META = {
     eyebrow: 'Visão geral',
     title: 'Dashboard',
     subtitle: 'Métricas gerais, leads recentes e desempenho por seção do site.'
+  },
+  'admin-atividades': {
+    eyebrow: 'Visão geral',
+    title: 'Atividades',
+    subtitle: 'Formulários enviados, cliques no WhatsApp e plantas visualizadas.'
   },
   'admin-campanha': {
     eyebrow: 'Marketing',
