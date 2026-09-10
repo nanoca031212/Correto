@@ -1,0 +1,149 @@
+<template>
+  <div>
+    <div class="admin-grid">
+      <div class="admin-card" v-for="stat in stats" :key="stat.label">
+        <div class="admin-card-title">{{ stat.label }}</div>
+        <div class="admin-stat-value">{{ stat.value }}</div>
+        <div class="admin-stat-trend" :class="stat.trend > 0 ? 'up' : 'down'">
+          {{ stat.trend > 0 ? '▲' : '▼' }} {{ Math.abs(stat.trend) }}% vs. semana anterior
+        </div>
+      </div>
+    </div>
+
+    <h2 class="admin-section-title">Atividade recente</h2>
+    <div class="admin-card" style="padding: 0; overflow: hidden;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Lead</th>
+            <th>Origem</th>
+            <th>Interesse</th>
+            <th>Data</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="lead in leads" :key="lead.name">
+            <td>{{ lead.name }}</td>
+            <td>{{ lead.source }}</td>
+            <td>{{ lead.interest }}</td>
+            <td>{{ lead.date }}</td>
+            <td><span class="admin-badge" :class="lead.badgeClass">{{ lead.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="admin-section-title">Visão geral das seções mais vistas</h2>
+    <div class="admin-card">
+      <div class="admin-bar-list">
+        <div class="admin-bar-row" v-for="section in sections" :key="section.name">
+          <span class="admin-bar-label">{{ section.name }}</span>
+          <div class="admin-bar-track">
+            <div class="admin-bar-fill" :style="{ width: section.percent + '%' }"></div>
+          </div>
+          <span class="admin-bar-value">{{ section.percent }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'AdminDashboard',
+  data() {
+    return {
+      stats: [
+        { label: 'Visualizações (30d)', value: '8.412', trend: 12 },
+        { label: 'Leads recebidos', value: '146', trend: 8 },
+        { label: 'Taxa de conversão', value: '1,7%', trend: -3 },
+        { label: 'Custo por lead', value: 'R$ 24,90', trend: -6 }
+      ],
+      leads: [
+        { name: 'Ana Paula Souza', source: 'Facebook Ads', interest: '2 quartos', date: 'Hoje, 09:41', status: 'Novo', badgeClass: 'admin-badge-pending' },
+        { name: 'Marcos Vinícius', source: 'Instagram', interest: '3 quartos', date: 'Hoje, 08:15', status: 'Contatado', badgeClass: 'admin-badge-success' },
+        { name: 'Fernanda Lima', source: 'Google Ads', interest: 'Cobertura', date: 'Ontem, 19:02', status: 'Contatado', badgeClass: 'admin-badge-success' },
+        { name: 'Ricardo Alves', source: 'Facebook Ads', interest: '2 quartos', date: 'Ontem, 14:37', status: 'Novo', badgeClass: 'admin-badge-pending' },
+        { name: 'Juliana Prado', source: 'Site direto', interest: 'Área de lazer', date: '2 dias atrás', status: 'Perdido', badgeClass: 'admin-badge-off' }
+      ],
+      sections: [
+        { name: 'Plantas', percent: 78 },
+        { name: 'Área de Lazer', percent: 64 },
+        { name: 'Vista Panorâmica', percent: 52 },
+        { name: 'Localização', percent: 41 },
+        { name: 'Contato', percent: 33 }
+      ]
+    }
+  }
+}
+</script>
+
+<style scoped>
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 14px 20px;
+  background: #f9fafb;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f1f3;
+  color: #1a1d23;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 44px;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-bar-label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+.admin-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #f0f1f3;
+  overflow: hidden;
+}
+
+.admin-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #44b319, #6fd93f);
+}
+
+.admin-bar-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-align: right;
+}
+</style>
