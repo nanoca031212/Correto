@@ -137,7 +137,7 @@ export default {
       // Camera comeca olhando para a regiao do Brasil, em vez de um ponto
       // arbitrario do globo que poderia cair no lado escondido da esfera.
       const camDir = destVec.clone().normalize()
-      camera.position.copy(camDir.multiplyScalar(2.5))
+      camera.position.copy(camDir.multiplyScalar(4.2))
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -150,7 +150,7 @@ export default {
       controls.enablePan = false
       controls.enableZoom = true
       controls.minDistance = 1.8
-      controls.maxDistance = 4
+      controls.maxDistance = 6
       controls.autoRotate = true
       controls.autoRotateSpeed = 0.6
 
@@ -226,12 +226,15 @@ export default {
         const originVec = latLngToVector3(city.lat, city.lng, radius)
         globeGroup.add(this.makeMarker(originVec, city.color, 0.02))
 
-        const mid = originVec.clone().add(destVec).multiplyScalar(0.5)
-        const dist = originVec.distanceTo(destVec)
-        mid.normalize().multiplyScalar(radius + dist * 0.55)
-        const curve = new THREE.QuadraticBezierCurve3(originVec, mid, destVec)
+        // Arco bem alto e aberto, cruzando boa parte do globo (visual
+        // dramatico tipo o globo de referencia) em vez de um arco curto
+        // colado perto da origem/destino.
+        const altitude = radius * (1.3 + i * 0.28)
+        const cp1 = originVec.clone().normalize().multiplyScalar(radius + altitude)
+        const cp2 = destVec.clone().normalize().multiplyScalar(radius + altitude)
+        const curve = new THREE.CubicBezierCurve3(originVec, cp1, cp2, destVec)
 
-        const tubeGeo = new THREE.TubeGeometry(curve, 64, 0.0035, 6, false)
+        const tubeGeo = new THREE.TubeGeometry(curve, 128, 0.003, 6, false)
         const tubeMat = new THREE.MeshBasicMaterial({
           color: city.color,
           transparent: true,
