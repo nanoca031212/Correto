@@ -23,7 +23,7 @@ import { feature } from 'topojson-client'
 import landTopology from 'world-atlas/land-110m.json'
 
 // Tamanho fixo do globo em pixels - nao muda com o layout/viewport.
-const GLOBE_SIZE = 280
+const GLOBE_SIZE = 300
 
 // Contagem - MG (localizacao do empreendimento)
 const DESTINATION = { lat: -19.9317, lng: -44.0536 }
@@ -142,7 +142,7 @@ export default {
       // Camera comeca olhando para a regiao do Brasil, em vez de um ponto
       // arbitrario do globo que poderia cair no lado escondido da esfera.
       const camDir = destVec.clone().normalize()
-      camera.position.copy(camDir.multiplyScalar(4.2))
+      camera.position.copy(camDir.multiplyScalar(2.75))
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -278,8 +278,8 @@ export default {
 .globe-canvas {
   /* Tamanho fixo em pixels (bate com GLOBE_SIZE no script) - nunca
      muda, independente do container/viewport. */
-  width: 280px;
-  height: 280px;
+  width: 300px;
+  height: 300px;
   flex-shrink: 0;
   cursor: grab;
 }
