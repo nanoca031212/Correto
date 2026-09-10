@@ -39,26 +39,21 @@
 
     <h2 class="admin-section-title">Plantas mais visualizadas</h2>
     <div class="admin-card">
-      <div class="admin-bar-list">
-        <div class="admin-bar-row" v-for="plant in plants" :key="plant.name">
-          <span class="admin-bar-label">{{ plant.name }}</span>
-          <div class="admin-bar-track">
-            <div class="admin-bar-fill" :style="{ width: plant.percent + '%' }"></div>
-          </div>
-          <span class="admin-bar-value">{{ plant.views }}</span>
-        </div>
-      </div>
+      <SimpleGraph :data="plants" />
     </div>
   </div>
 </template>
 
 <script>
+import SimpleGraph from '../components/SimpleGraph.vue'
+
 const ICON_FORM = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>'
 const ICON_WHATS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20l1.1-5.4A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 10.5c.5 2.5 2.5 4.5 5 5"/></svg>'
 const ICON_PLANT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 14h10M13 3v11M13 14v7M17 14v7"/></svg>'
 
 export default {
   name: 'AdminAtividades',
+  components: { SimpleGraph },
   data() {
     return {
       activeTab: 'todos',
@@ -89,11 +84,11 @@ export default {
         { id: 10, type: 'form', name: 'Ricardo Alves', description: 'preencheu o formulário de contato', source: 'Facebook Ads', date: 'Ontem, 14:37' }
       ],
       plants: [
-        { name: 'Apartamento Garden 74,10m²', views: 68, percent: 100 },
-        { name: 'Apartamento 51,76m²', views: 54, percent: 79 },
-        { name: 'Apartamento Garden 64,78m²', views: 41, percent: 60 },
-        { name: 'Apartamento Garden 58,75m²', views: 32, percent: 47 },
-        { name: 'Apartamento 49,5m²', views: 19, percent: 28 }
+        { label: 'Garden 74,10m²', value: 68 },
+        { label: '51,76m²', value: 54 },
+        { label: 'Garden 64,78m²', value: 41 },
+        { label: 'Garden 58,75m²', value: 32 },
+        { label: '49,5m²', value: 19 }
       ]
     }
   },
@@ -210,53 +205,4 @@ export default {
   color: #a1a1aa;
 }
 
-.admin-bar-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.admin-bar-row {
-  display: grid;
-  grid-template-columns: 220px 1fr 44px;
-  align-items: center;
-  gap: 14px;
-}
-
-.admin-bar-label {
-  font-size: 13.5px;
-  color: #3f3f46;
-  font-weight: 500;
-}
-
-.admin-bar-track {
-  height: 8px;
-  border-radius: 999px;
-  background: #f0f1f3;
-  overflow: hidden;
-}
-
-.admin-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: #18181b;
-}
-
-.admin-bar-value {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #71717a;
-  text-align: right;
-}
-
-@media (max-width: 640px) {
-  .admin-bar-row {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .admin-bar-value {
-    text-align: left;
-  }
-}
 </style>

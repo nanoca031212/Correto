@@ -41,20 +41,14 @@
 
     <h2 class="admin-section-title">Visão geral das seções mais vistas</h2>
     <div class="admin-card">
-      <div class="admin-bar-list">
-        <div class="admin-bar-row" v-for="section in sections" :key="section.name">
-          <span class="admin-bar-label">{{ section.name }}</span>
-          <div class="admin-bar-track">
-            <div class="admin-bar-fill" :style="{ width: section.percent + '%' }"></div>
-          </div>
-          <span class="admin-bar-value">{{ section.percent }}%</span>
-        </div>
-      </div>
+      <SimpleGraph :data="sections" />
     </div>
   </div>
 </template>
 
 <script>
+import SimpleGraph from '../components/SimpleGraph.vue'
+
 const ICON_EYE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
 const ICON_USERS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.3a3.2 3.2 0 0 1 0 6.2M22 20c0-3-1.9-5.2-4.5-5.8"/></svg>'
 const ICON_FUNNEL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18l-7 9v6l-4 2v-8L3 4z"/></svg>'
@@ -62,6 +56,7 @@ const ICON_COIN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" s
 
 export default {
   name: 'AdminDashboard',
+  components: { SimpleGraph },
   data() {
     return {
       stats: [
@@ -78,11 +73,11 @@ export default {
         { name: 'Juliana Prado', source: 'Site direto', interest: 'Área de lazer', date: '2 dias atrás', status: 'Perdido', badgeClass: 'admin-badge-off' }
       ],
       sections: [
-        { name: 'Plantas', percent: 78 },
-        { name: 'Área de Lazer', percent: 64 },
-        { name: 'Vista Panorâmica', percent: 52 },
-        { name: 'Localização', percent: 41 },
-        { name: 'Contato', percent: 33 }
+        { label: 'Plantas', value: 78 },
+        { label: 'Área de Lazer', value: 64 },
+        { label: 'Vista Panorâmica', value: 52 },
+        { label: 'Localização', value: 41 },
+        { label: 'Contato', value: 33 }
       ]
     }
   }
@@ -127,44 +122,5 @@ export default {
 
 .admin-table tr:last-child td {
   border-bottom: none;
-}
-
-.admin-bar-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.admin-bar-row {
-  display: grid;
-  grid-template-columns: 140px 1fr 44px;
-  align-items: center;
-  gap: 14px;
-}
-
-.admin-bar-label {
-  font-size: 14px;
-  color: #374151;
-  font-weight: 500;
-}
-
-.admin-bar-track {
-  height: 8px;
-  border-radius: 999px;
-  background: #f0f1f3;
-  overflow: hidden;
-}
-
-.admin-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: #18181b;
-}
-
-.admin-bar-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  text-align: right;
 }
 </style>
