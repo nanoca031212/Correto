@@ -228,7 +228,7 @@ export default {
 
 .admin-content {
   flex: 1;
-  padding: 36px 40px;
+  padding: 56px 40px 36px;
   max-width: 1180px;
   width: 100%;
 }
