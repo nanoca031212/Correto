@@ -23,8 +23,21 @@
               muted
               playsinline
               preload="auto"
+              @loadeddata="onFrameReady"
+              @playing="onPlaying"
               @seeked="onSeeked"
+              @error="onVideoError"
             ></video>
+            <button
+              v-if="needsInteraction"
+              class="video-start"
+              @click="startVideo"
+            >
+              Ativar animação
+            </button>
+            <p v-if="videoFailed" class="video-message" role="status">
+              Animação indisponível. Veja a imagem do empreendimento.
+            </p>
           </div>
         </div>
       </div>
@@ -45,34 +58,63 @@ export default {
     const scrollWrapper = ref(null);
     const stickyEl = ref(null);
     const videoEl = ref(null);
+    const needsInteraction = ref(false);
+    const videoFailed = ref(false);
     let ticking = false;
     let frameId = 0;
+    let disposed = false;
+    let starting = false;
     let targetTime = 0;
-    let seekPending = false;
-    let seekWatchdog;
+    let observer;
+    let retryTimer;
 
     const seekToTarget = () => {
       const video = videoEl.value;
-      // Nao cancela um seek em andamento a cada frame de scroll.
-      if (!video || seekPending) return;
+      // Do not cancel an in-flight decode with another seek on every touchmove.
+      if (!video || video.readyState < 2 || video.seeking || starting) return;
       if (Math.abs(video.currentTime - targetTime) > 1 / 30) {
         video.currentTime = targetTime;
-        seekPending = true;
-        // Alguns navegadores as vezes nunca disparam "seeked" - sem esse
-        // watchdog o scrub trava pra sempre, pois seekPending nunca
-        // voltaria a false.
-        clearTimeout(seekWatchdog);
-        seekWatchdog = setTimeout(() => {
-          seekPending = false;
-          seekToTarget();
-        }, 200);
       }
     };
 
-    const onSeeked = () => {
-      clearTimeout(seekWatchdog);
-      seekPending = false;
-      seekToTarget();
+    const onSeeked = () => seekToTarget();
+    const onFrameReady = () => {
+      clearTimeout(retryTimer);
+      if (!starting) needsInteraction.value = false;
+      updateVideoFrame();
+    };
+    const onPlaying = () => {
+      starting = false;
+      videoEl.value?.pause();
+      needsInteraction.value = false;
+      onFrameReady();
+    };
+    const onVideoError = () => {
+      clearTimeout(retryTimer);
+      starting = false;
+      videoFailed.value = true;
+      needsInteraction.value = false;
+    };
+    const startVideo = () => {
+      const video = videoEl.value;
+      if (!video || starting || videoFailed.value) return;
+      starting = true;
+      video.muted = true;
+      video.playsInline = true;
+      // Keep the poster visible and provide a real user-gesture retry if
+      // autoplay/preload is restricted (e.g. mobile power-saving modes).
+      retryTimer = setTimeout(() => {
+        if (!disposed && !videoFailed.value) {
+          starting = false;
+          needsInteraction.value = true;
+        }
+      }, 5000);
+      video.play().catch(() => {
+        if (disposed) return;
+        clearTimeout(retryTimer);
+        starting = false;
+        if (!videoFailed.value) needsInteraction.value = true;
+      });
     };
 
     const updateVideoFrame = () => {
@@ -113,27 +155,7 @@ export default {
       seekToTarget();
     };
 
-    let warmedUp = false;
-    const warmUpVideo = () => {
-      const video = videoEl.value;
-      if (!video || warmedUp) return;
-      warmedUp = true;
-      // "Aquece" o vídeo no mobile: iOS/Safari muitas vezes só carrega os
-      // dados do vídeo (mesmo com preload="auto") depois de uma tentativa
-      // de play - play+pause imediato é permitido pra vídeo mudo e evita
-      // o vídeo ficar em branco até o usuário interagir
-      const playPromise = video.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        playPromise.then(() => video.pause()).catch(() => {
-          warmedUp = false;
-        });
-      }
-    };
-
     const onScroll = () => {
-      // Reforço: se o autoplay no mount tiver sido bloqueado, o primeiro
-      // scroll tenta novamente ativar o vídeo.
-      warmUpVideo();
       if (!ticking) {
         ticking = true;
         frameId = window.requestAnimationFrame(updateVideoFrame);
@@ -141,36 +163,27 @@ export default {
     };
 
     onMounted(() => {
-      const video = videoEl.value;
-      if (video) {
-        let ready = false;
-        const onReady = () => {
-          if (ready) return;
-          ready = true;
-          video.pause();
-          updateVideoFrame();
-        };
-
-        // Se os metadados já estiverem disponíveis (cache), dispara na hora;
-        // senão espera o primeiro evento que indique que já dá pra seekar.
-        // Alguns navegadores mobile não disparam "loadedmetadata" de forma
-        // confiável, então também escuta "canplay" como reforço.
-        if (video.readyState >= 1) {
-          onReady();
-        } else {
-          video.addEventListener("loadedmetadata", onReady, { once: true });
-          video.addEventListener("canplay", onReady, { once: true });
-        }
-
-        warmUpVideo();
+      if ("IntersectionObserver" in window) {
+        observer = new IntersectionObserver(([entry]) => {
+          if (entry.isIntersecting) {
+            startVideo();
+            observer.disconnect();
+          }
+        });
+        observer.observe(stickyEl.value);
+      } else {
+        startVideo();
       }
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", onScroll, { passive: true });
     });
 
     onUnmounted(() => {
-      clearTimeout(seekWatchdog);
+      disposed = true;
+      observer?.disconnect();
+      clearTimeout(retryTimer);
       window.cancelAnimationFrame(frameId);
+      videoEl.value?.pause();
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     });
@@ -179,7 +192,13 @@ export default {
       scrollWrapper,
       stickyEl,
       videoEl,
+      needsInteraction,
+      videoFailed,
+      startVideo,
+      onFrameReady,
+      onPlaying,
       onSeeked,
+      onVideoError,
     };
   },
 };
@@ -258,6 +277,30 @@ export default {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.video-start,
+.video-message {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+.video-start {
+  cursor: pointer;
+  font: inherit;
+}
+.video-start:focus-visible {
+  outline: 3px solid #245838;
+  outline-offset: 4px;
 }
 
 /* Responsividade */
