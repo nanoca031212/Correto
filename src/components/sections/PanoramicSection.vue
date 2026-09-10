@@ -140,6 +140,12 @@ export default {
       }
     };
 
+    // Toque/clique conta como gesto real do usuário pras políticas de
+    // autoplay dos navegadores (diferente de scroll) - escuta na página
+    // inteira (a partir do Hero) pra aquecer o vídeo o quanto antes,
+    // mesmo antes da seção panorâmica entrar em tela.
+    const onFirstInteraction = () => warmUpVideo();
+
     onMounted(() => {
       const video = videoEl.value;
       if (video) {
@@ -166,6 +172,13 @@ export default {
       }
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", onScroll, { passive: true });
+      document.addEventListener("touchstart", onFirstInteraction, {
+        once: true,
+        passive: true,
+      });
+      document.addEventListener("pointerdown", onFirstInteraction, {
+        once: true,
+      });
     });
 
     onUnmounted(() => {
@@ -173,6 +186,8 @@ export default {
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      document.removeEventListener("touchstart", onFirstInteraction);
+      document.removeEventListener("pointerdown", onFirstInteraction);
     });
 
     return {
