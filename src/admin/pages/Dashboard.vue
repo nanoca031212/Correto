@@ -1,11 +1,16 @@
 <template>
   <div>
     <div class="admin-grid">
-      <div class="admin-card" v-for="stat in stats" :key="stat.label">
-        <div class="admin-card-title">{{ stat.label }}</div>
+      <div class="admin-card stat-card" v-for="stat in stats" :key="stat.label">
+        <div class="stat-card-top">
+          <div class="admin-card-title">{{ stat.label }}</div>
+          <span class="admin-stat-icon" v-html="stat.icon"></span>
+        </div>
         <div class="admin-stat-value">{{ stat.value }}</div>
         <div class="admin-stat-trend" :class="stat.trend > 0 ? 'up' : 'down'">
-          {{ stat.trend > 0 ? '▲' : '▼' }} {{ Math.abs(stat.trend) }}% vs. semana anterior
+          <svg v-if="stat.trend > 0" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 15l6-6 6 6"/></svg>
+          <svg v-else viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          {{ Math.abs(stat.trend) }}% vs. semana anterior
         </div>
       </div>
     </div>
@@ -50,15 +55,20 @@
 </template>
 
 <script>
+const ICON_EYE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>'
+const ICON_USERS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.3a3.2 3.2 0 0 1 0 6.2M22 20c0-3-1.9-5.2-4.5-5.8"/></svg>'
+const ICON_FUNNEL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4h18l-7 9v6l-4 2v-8L3 4z"/></svg>'
+const ICON_COIN = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.4 1.2-2 2.5-2s2.5.7 2.5 1.8-1 1.6-2.5 1.9-2.5.9-2.5 2 1.2 1.8 2.5 1.8 2.5-.6 2.5-2"/></svg>'
+
 export default {
   name: 'AdminDashboard',
   data() {
     return {
       stats: [
-        { label: 'Visualizações (30d)', value: '8.412', trend: 12 },
-        { label: 'Leads recebidos', value: '146', trend: 8 },
-        { label: 'Taxa de conversão', value: '1,7%', trend: -3 },
-        { label: 'Custo por lead', value: 'R$ 24,90', trend: -6 }
+        { label: 'Visualizações (30d)', value: '8.412', trend: 12, icon: ICON_EYE },
+        { label: 'Leads recebidos', value: '146', trend: 8, icon: ICON_USERS },
+        { label: 'Taxa de conversão', value: '1,7%', trend: -3, icon: ICON_FUNNEL },
+        { label: 'Custo por lead', value: 'R$ 24,90', trend: -6, icon: ICON_COIN }
       ],
       leads: [
         { name: 'Ana Paula Souza', source: 'Facebook Ads', interest: '2 quartos', date: 'Hoje, 09:41', status: 'Novo', badgeClass: 'admin-badge-pending' },
@@ -80,6 +90,17 @@ export default {
 </script>
 
 <style scoped>
+.stat-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stat-card-top .admin-card-title {
+  margin-bottom: 0;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -137,7 +158,7 @@ export default {
 .admin-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #44b319, #6fd93f);
+  background: #18181b;
 }
 
 .admin-bar-value {

@@ -41,7 +41,7 @@
       <div class="admin-card">
         <ul class="mcp-scope-list">
           <li v-for="item in scope" :key="item.title">
-            <span class="mcp-scope-icon">{{ item.icon }}</span>
+            <span class="mcp-scope-icon" v-html="item.icon"></span>
             <div>
               <strong>{{ item.title }}</strong>
               <p>{{ item.description }}</p>
@@ -64,6 +64,10 @@
 </template>
 
 <script>
+const ICON_DOC = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>'
+const ICON_CAMPAIGN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l18-7-7 18-2.5-7.5L3 11z"/></svg>'
+const ICON_TRACK = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V10M11 19V5M18 19v-7"/></svg>'
+
 export default {
   name: 'AdminMcp',
   data() {
@@ -72,9 +76,9 @@ export default {
       endpoint: 'https://mcp.jardinsresidence.com.br/sse',
       apiKey: 'jr_mcp_8f2c1a9d4e6b7f30',
       scope: [
-        { icon: '📄', title: 'Conteúdo da página', description: 'Textos, seções, plantas, fotos e vídeos publicados no site.' },
-        { icon: '📣', title: 'Campanha', description: 'Quais campanhas estão conectadas, orçamento e criativos em uso.' },
-        { icon: '📈', title: 'Tracking', description: 'Eventos do Pixel, conversões e desempenho por seção do site.' }
+        { icon: ICON_DOC, title: 'Conteúdo da página', description: 'Textos, seções, plantas, fotos e vídeos publicados no site.' },
+        { icon: ICON_CAMPAIGN, title: 'Campanha', description: 'Quais campanhas estão conectadas, orçamento e criativos em uso.' },
+        { icon: ICON_TRACK, title: 'Tracking', description: 'Eventos do Pixel, conversões e desempenho por seção do site.' }
       ]
     }
   },
@@ -98,15 +102,16 @@ export default {
 }
 
 .mcp-intro h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   margin: 10px 0 8px;
-  color: #14171f;
+  color: #18181b;
+  letter-spacing: -0.1px;
 }
 
 .mcp-intro p {
-  color: #6b7280;
-  font-size: 14px;
+  color: #71717a;
+  font-size: 13.5px;
   max-width: 560px;
   line-height: 1.6;
 }
@@ -127,11 +132,12 @@ export default {
 
 .mcp-field code {
   flex: 1;
-  background: #f4f5f7;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #14171f;
+  background: #fafafa;
+  border: 1px solid #ececec;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #18181b;
   overflow-x: auto;
   white-space: nowrap;
 }
@@ -150,17 +156,26 @@ export default {
 }
 
 .mcp-scope-icon {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #fafafa;
+  border: 1px solid #ececec;
+  color: #52525b;
+  flex-shrink: 0;
 }
 
 .mcp-scope-list strong {
-  font-size: 14px;
-  color: #14171f;
+  font-size: 13.5px;
+  color: #18181b;
 }
 
 .mcp-scope-list p {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 12.5px;
+  color: #71717a;
   margin-top: 2px;
 }
 
@@ -169,8 +184,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-size: 14px;
-  color: #374151;
+  font-size: 13.5px;
+  color: #3f3f46;
 }
 
 @media (max-width: 640px) {
