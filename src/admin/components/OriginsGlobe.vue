@@ -22,6 +22,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { feature } from 'topojson-client'
 import landTopology from 'world-atlas/land-110m.json'
 
+// Tamanho fixo do globo em pixels - nao muda com o layout/viewport.
+const GLOBE_SIZE = 280
+
 // Contagem - MG (localizacao do empreendimento)
 const DESTINATION = { lat: -19.9317, lng: -44.0536 }
 
@@ -126,8 +129,10 @@ export default {
   methods: {
     initScene() {
       const host = this.$refs.canvasHost
-      const width = host.clientWidth
-      const height = host.clientHeight
+      // Tamanho fixo (nao responsivo, nao depende do container) - o
+      // globo sempre renderiza nesse tamanho, sem ResizeObserver.
+      const width = GLOBE_SIZE
+      const height = GLOBE_SIZE
 
       const scene = new THREE.Scene()
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100)
@@ -227,9 +232,6 @@ export default {
 
       this.three = { scene, camera, renderer, controls, globeGroup }
 
-      this.resizeObserver = new ResizeObserver(() => this.onResize())
-      this.resizeObserver.observe(host)
-
       const animate = () => {
         this.frameId = requestAnimationFrame(animate)
         controls.update()
@@ -244,19 +246,8 @@ export default {
       mesh.position.copy(position)
       return mesh
     },
-    onResize() {
-      const host = this.$refs.canvasHost
-      if (!host || !this.three) return
-      const { camera, renderer } = this.three
-      const width = host.clientWidth
-      const height = host.clientHeight
-      camera.aspect = width / height
-      camera.updateProjectionMatrix()
-      renderer.setSize(width, height)
-    },
     teardown() {
       cancelAnimationFrame(this.frameId)
-      this.resizeObserver?.disconnect()
       if (!this.three) return
       const { renderer, scene } = this.three
       scene.traverse((obj) => {
@@ -285,9 +276,11 @@ export default {
 }
 
 .globe-canvas {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 360px;
+  /* Tamanho fixo em pixels (bate com GLOBE_SIZE no script) - nunca
+     muda, independente do container/viewport. */
+  width: 280px;
+  height: 280px;
+  flex-shrink: 0;
   cursor: grab;
 }
 
