@@ -40,9 +40,7 @@
     </div>
 
     <h2 class="admin-section-title">Visão geral das seções mais vistas</h2>
-    <div class="admin-card">
-      <SimpleGraph :data="sections" />
-    </div>
+    <SimpleGraph :data="sections" />
   </div>
 </template>
 

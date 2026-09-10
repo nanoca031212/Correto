@@ -38,9 +38,7 @@
     </div>
 
     <h2 class="admin-section-title">Plantas mais visualizadas</h2>
-    <div class="admin-card">
-      <SimpleGraph :data="plants" />
-    </div>
+    <SimpleGraph :data="plants" />
   </div>
 </template>
 

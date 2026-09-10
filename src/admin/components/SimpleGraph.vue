@@ -21,7 +21,7 @@
     >
       <defs>
         <linearGradient :id="gradientId" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" :stop-color="lineColor" stop-opacity="0.28" />
+          <stop offset="0%" :stop-color="lineColor" stop-opacity="0.22" />
           <stop offset="100%" :stop-color="lineColor" stop-opacity="0" />
         </linearGradient>
       </defs>
@@ -34,7 +34,7 @@
           :y1="y"
           :x2="vbWidth"
           :y2="y"
-          :stroke-dasharray="gridStyle === 'dashed' ? '4 4' : gridStyle === 'dotted' ? '1.5 4' : 'none'"
+          :stroke-dasharray="gridStyle === 'dashed' ? '5 6' : gridStyle === 'dotted' ? '1.5 5' : 'none'"
         />
       </g>
 
@@ -59,19 +59,29 @@
       />
 
       <g v-if="showDots">
-        <circle
-          v-for="(p, i) in points"
-          :key="'dot' + i"
-          class="sg-dot"
-          :class="{ glow: dotHoverGlow }"
-          :cx="p.x"
-          :cy="p.y"
-          :r="dotSize"
-          :fill="dotColor || lineColor"
-          :style="{ opacity: played ? 1 : 0, transitionDelay: played ? (i * 35) + 'ms' : '0ms' }"
-        >
-          <title>{{ p.label }}: {{ p.value }}</title>
-        </circle>
+        <g v-for="(p, i) in points" :key="'dot' + i" class="sg-dot-group">
+          <circle
+            class="sg-dot-halo"
+            :cx="p.x"
+            :cy="p.y"
+            :r="dotSize + 5"
+            :fill="dotColor || lineColor"
+            :style="{ opacity: played ? 0.22 : 0, transitionDelay: played ? (i * 35) + 'ms' : '0ms' }"
+          />
+          <circle
+            class="sg-dot"
+            :class="{ glow: dotHoverGlow }"
+            :cx="p.x"
+            :cy="p.y"
+            :r="dotSize"
+            :fill="dotColor || lineColor"
+            :stroke="ringColor"
+            :stroke-width="2"
+            :style="{ opacity: played ? 1 : 0, transitionDelay: played ? (i * 35) + 'ms' : '0ms' }"
+          >
+            <title>{{ p.label }}: {{ p.value }}</title>
+          </circle>
+        </g>
       </g>
     </svg>
 
@@ -89,12 +99,13 @@ export default {
   props: {
     data: { type: Array, required: true }, // [{ label, value }]
     height: { type: Number, default: 220 },
-    lineColor: { type: String, default: '#2d9c14' },
+    lineColor: { type: String, default: '#8b7cf6' },
     dotColor: { type: String, default: '' },
+    ringColor: { type: String, default: 'rgba(255,255,255,0.55)' },
     graphLineThickness: { type: Number, default: 2.5 },
-    dotSize: { type: Number, default: 4 },
+    dotSize: { type: Number, default: 6 },
     curved: { type: Boolean, default: true },
-    gradientFade: { type: Boolean, default: true },
+    gradientFade: { type: Boolean, default: false },
     showDots: { type: Boolean, default: true },
     showGrid: { type: Boolean, default: true },
     showLabels: { type: Boolean, default: true },
@@ -134,8 +145,8 @@ export default {
     },
     points() {
       const n = this.data.length
-      const padX = 12
-      const padY = 16
+      const padX = 14
+      const padY = 22
       const usableW = this.vbWidth - padX * 2
       const usableH = this.vbHeight - padY * 2
       return this.data.map((d, i) => {
@@ -230,6 +241,9 @@ export default {
 <style scoped>
 .sg {
   width: 100%;
+  background: #0b0b0d;
+  border-radius: 16px;
+  padding: 22px 22px 18px;
 }
 
 .sg-top {
@@ -250,13 +264,13 @@ export default {
 }
 
 .sg-diff.up {
-  color: #16a34a;
-  background: #eafbe0;
+  color: #6fd93f;
+  background: rgba(111, 217, 63, 0.14);
 }
 
 .sg-diff.down {
-  color: #dc2626;
-  background: #fdedec;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.14);
 }
 
 .sg-svg {
@@ -266,7 +280,7 @@ export default {
 }
 
 .sg-grid line {
-  stroke: #eceeed;
+  stroke: rgba(255, 255, 255, 0.1);
   stroke-width: 1;
 }
 
@@ -274,25 +288,30 @@ export default {
   transition: opacity 0.6s ease;
 }
 
+.sg-dot-halo {
+  transition: opacity 0.4s ease;
+  filter: blur(2px);
+}
+
 .sg-dot {
   transition: opacity 0.35s ease, r 0.15s ease;
 }
 
 .sg-dot.glow:hover {
-  r: 6;
-  filter: drop-shadow(0 0 5px currentColor);
+  r: 8;
+  filter: drop-shadow(0 0 6px currentColor);
 }
 
 .sg-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
+  margin-top: 10px;
   gap: 6px;
 }
 
 .sg-labels span {
   font-size: 11px;
-  color: #a1a1aa;
+  color: rgba(255, 255, 255, 0.4);
   flex: 1;
   text-align: center;
   overflow: hidden;
