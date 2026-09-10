@@ -113,6 +113,7 @@ export default {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  padding-top: 32px;
   margin-bottom: 16px;
 }
 
