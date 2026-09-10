@@ -256,7 +256,7 @@ export default {
 /* Área de scroll que controla o "scrub" do vídeo */
 .panoramic-video-wrapper {
   position: relative;
-  height: 160vh;
+  height: 220vh;
 }
 
 /* Vídeo fica travado (pinned) no topo enquanto a área acima é scrollada */
@@ -282,8 +282,8 @@ export default {
   }
 
   .panoramic-video-wrapper {
-    height: 175vh;
-    height: 175svh;
+    height: 235vh;
+    height: 235svh;
   }
 
   .panoramic-video-sticky {
