@@ -1,261 +1,446 @@
 <template>
-  <div>
-    <div class="admin-grid">
-      <div class="admin-card stat-card" v-for="stat in summary" :key="stat.label">
-        <div class="stat-card-top">
-          <div class="admin-card-title">{{ stat.label }}</div>
-          <span class="admin-stat-icon" v-html="stat.icon"></span>
+  <div class="ativ-root">
+
+    <!-- ── STAT CARDS ── -->
+    <div class="ativ-stats">
+      <div class="ativ-stat-card" v-for="stat in summary" :key="stat.label">
+        <span class="ativ-stat-label">{{ stat.label }}</span>
+        <span class="ativ-stat-value">{{ stat.value }}</span>
+        <span class="ativ-stat-sub">{{ stat.sub }}</span>
+      </div>
+    </div>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="ativ-body">
+
+      <!-- Coluna principal: tabela de leads -->
+      <div class="ativ-main">
+        <div class="ativ-main-header">
+          <h2 class="ativ-title">Base de leads</h2>
+          <div class="ativ-search-wrap">
+            <svg class="ativ-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15">
+              <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              class="ativ-search"
+              v-model="search"
+              placeholder="Buscar por nome, origem ou interesse…"
+            />
+          </div>
         </div>
-        <div class="admin-stat-value">{{ stat.value }}</div>
-        <div class="admin-stat-trend up">últimos 7 dias</div>
-      </div>
-    </div>
 
-    <div class="atividades-header">
-      <h2 class="admin-section-title">Linha do tempo</h2>
-      <div class="atividades-tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="atividades-tab"
-          :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-    </div>
-
-    <div class="admin-card admin-card-flush">
-      <div class="atividade-row" v-for="item in filteredEvents" :key="item.id">
-        <span class="atividade-icon" :class="'type-' + item.type" v-html="icons[item.type]"></span>
-        <div class="atividade-body">
-          <p><strong>{{ item.name }}</strong> {{ item.description }}</p>
-          <span class="atividade-meta">{{ item.source }} · {{ item.date }}</span>
+        <div class="ativ-table-wrap">
+          <table class="ativ-table">
+            <thead>
+              <tr>
+                <th>LEAD</th>
+                <th>ETIQUETAS</th>
+                <th>ORIGEM</th>
+                <th>DATA</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="lead in filteredLeads" :key="lead.id">
+                <td class="ativ-td-lead">
+                  <span class="ativ-lead-name">{{ lead.name }}</span>
+                  <span class="ativ-lead-meta">{{ lead.interest }}</span>
+                </td>
+                <td>
+                  <div class="ativ-tags">
+                    <span
+                      v-for="tag in lead.tags"
+                      :key="tag"
+                      class="ativ-tag"
+                      :class="tagClass(tag)"
+                    >{{ tag }}</span>
+                  </div>
+                </td>
+                <td class="ativ-td-source">{{ lead.source }}</td>
+                <td class="ativ-td-date">{{ lead.date }}</td>
+                <td>
+                  <span class="ativ-badge" :class="statusClass(lead.status)">{{ lead.status }}</span>
+                </td>
+              </tr>
+              <tr v-if="filteredLeads.length === 0">
+                <td colspan="5" class="ativ-empty">Nenhum lead encontrado.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <span class="admin-badge" :class="badgeClass[item.type]">{{ typeLabel[item.type] }}</span>
       </div>
+
+      <!-- Sidebar: filtros por segmento -->
+      <aside class="ativ-sidebar">
+        <span class="ativ-sidebar-title">SEGMENTO</span>
+        <ul class="ativ-filter-list">
+          <li
+            v-for="seg in segments"
+            :key="seg.id"
+            class="ativ-filter-item"
+            :class="{ active: activeSegment === seg.id }"
+            @click="activeSegment = seg.id"
+          >
+            <span class="ativ-filter-label">{{ seg.label }}</span>
+            <span class="ativ-filter-count">{{ seg.count }}</span>
+          </li>
+        </ul>
+      </aside>
     </div>
 
-    <h2 class="admin-section-title">Visualizações de plantas nos últimos 7 dias</h2>
-    <SimpleGraph :data="plantViews7d" unit="visualizações de plantas" />
+    <!-- ── GRÁFICO ── -->
+    <h2 class="ativ-section-title">Atividades nos últimos 7 dias</h2>
+    <SimpleGraph :data="plantViews7d" unit="atividades" />
 
-    <h2 class="admin-section-title">Plantas mais vistas</h2>
-    <div class="admin-card admin-card-flush">
-      <div class="plant-rank-row" v-for="(plant, i) in plantsRanking" :key="plant.name">
-        <span class="plant-rank-number">{{ i + 1 }}</span>
-        <span class="plant-rank-name">{{ plant.name }}</span>
-        <span class="plant-rank-value">{{ plant.views }} visualizações</span>
-      </div>
-    </div>
   </div>
 </template>
 
 <script>
 import SimpleGraph from '../components/SimpleGraph.vue'
 
-const ICON_FORM = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>'
-const ICON_WHATS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20l1.1-5.4A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 10.5c.5 2.5 2.5 4.5 5 5"/></svg>'
-const ICON_PLANT = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="1.5"/><path d="M3 14h10M13 3v11M13 14v7M17 14v7"/></svg>'
-
 export default {
   name: 'AdminAtividades',
   components: { SimpleGraph },
   data() {
     return {
-      activeTab: 'todos',
-      tabs: [
-        { id: 'todos', label: 'Todos' },
-        { id: 'form', label: 'Formulário' },
-        { id: 'whatsapp', label: 'WhatsApp' },
-        { id: 'planta', label: 'Plantas' }
+      search: '',
+      activeSegment: 'todos',
+      segments: [
+        { id: 'todos',       label: 'Todos',               count: 10 },
+        { id: 'Novo',        label: 'Novo lead',            count: 4  },
+        { id: 'Contatado',   label: 'Contatado',            count: 3  },
+        { id: 'Qualificado', label: 'Qualificado',          count: 2  },
+        { id: 'Perdido',     label: 'Perdido',              count: 1  },
+        { id: 'reuniao',     label: 'Reunião qualificada',  count: 2  },
+        { id: 'form',        label: 'Formulário',           count: 4  },
+        { id: 'whatsapp',    label: 'WhatsApp',             count: 3  },
+        { id: 'planta',      label: 'Viu planta',           count: 3  },
       ],
-      icons: { form: ICON_FORM, whatsapp: ICON_WHATS, planta: ICON_PLANT },
-      typeLabel: { form: 'Formulário', whatsapp: 'WhatsApp', planta: 'Planta vista' },
-      badgeClass: { form: 'admin-badge-pending', whatsapp: 'admin-badge-success', planta: 'admin-badge-off' },
       summary: [
-        { label: 'Formulários enviados', value: '38', icon: ICON_FORM },
-        { label: 'Cliques no WhatsApp', value: '72', icon: ICON_WHATS },
-        { label: 'Visualizações de plantas', value: '214', icon: ICON_PLANT }
+        { label: 'Total de leads',        value: '10', sub: 'contatos únicos'              },
+        { label: 'Contatados',            value: '3',  sub: 'aguardando retorno'           },
+        { label: 'Qualificados',          value: '2',  sub: 'alto interesse'               },
+        { label: 'Reunião qualificada',   value: '2',  sub: 'formulário + WhatsApp'        },
       ],
-      events: [
-        { id: 1, type: 'form', name: 'Ana Paula Souza', description: 'preencheu o formulário de contato', source: 'Facebook Ads', date: 'Hoje, 09:41' },
-        { id: 2, type: 'whatsapp', name: 'Visitante', description: 'clicou em "Falar no WhatsApp"', source: 'Instagram', date: 'Hoje, 09:12' },
-        { id: 3, type: 'planta', name: 'Visitante', description: 'visualizou a planta Apartamento Garden 74,10m²', source: 'Site direto', date: 'Hoje, 08:57' },
-        { id: 4, type: 'form', name: 'Marcos Vinícius', description: 'preencheu o formulário de contato', source: 'Instagram', date: 'Hoje, 08:15' },
-        { id: 5, type: 'planta', name: 'Visitante', description: 'visualizou a planta Apartamento 51,76m²', source: 'Google Ads', date: 'Ontem, 20:03' },
-        { id: 6, type: 'whatsapp', name: 'Fernanda Lima', description: 'clicou em "Falar no WhatsApp"', source: 'Google Ads', date: 'Ontem, 19:04' },
-        { id: 7, type: 'form', name: 'Fernanda Lima', description: 'preencheu o formulário de contato', source: 'Google Ads', date: 'Ontem, 19:02' },
-        { id: 8, type: 'planta', name: 'Visitante', description: 'visualizou a planta Apartamento Garden 64,78m²', source: 'Facebook Ads', date: 'Ontem, 15:20' },
-        { id: 9, type: 'whatsapp', name: 'Ricardo Alves', description: 'clicou em "Falar no WhatsApp"', source: 'Facebook Ads', date: 'Ontem, 14:40' },
-        { id: 10, type: 'form', name: 'Ricardo Alves', description: 'preencheu o formulário de contato', source: 'Facebook Ads', date: 'Ontem, 14:37' }
+      leads: [
+        { id: 1,  name: 'Ana Paula Souza',  interest: '2 quartos',     source: 'Facebook Ads', date: 'Hoje, 09:41',  status: 'Novo',        reuniao: true,  tags: ['Novo', 'Formulário', 'WhatsApp'],      type: 'form'     },
+        { id: 2,  name: 'Marcos Vinícius',  interest: '3 quartos',     source: 'Instagram',    date: 'Hoje, 08:15',  status: 'Contatado',   reuniao: false, tags: ['Contatado'],                            type: 'whatsapp' },
+        { id: 3,  name: 'Fernanda Lima',    interest: 'Cobertura',     source: 'Google Ads',   date: 'Ontem, 19:02', status: 'Contatado',   reuniao: true,  tags: ['Contatado', 'Qualificado', 'Formulário', 'WhatsApp'], type: 'form' },
+        { id: 4,  name: 'Ricardo Alves',    interest: '2 quartos',     source: 'Facebook Ads', date: 'Ontem, 14:37', status: 'Novo',        reuniao: false, tags: ['Novo'],                                 type: 'form'     },
+        { id: 5,  name: 'Juliana Prado',    interest: 'Área de lazer', source: 'Site direto',  date: '2 dias atrás', status: 'Perdido',     reuniao: false, tags: ['Perdido'],                              type: 'whatsapp' },
+        { id: 6,  name: 'Carlos Henrique',  interest: '3 quartos',     source: 'Instagram',    date: '2 dias atrás', status: 'Qualificado', reuniao: false, tags: ['Qualificado'],                          type: 'planta'   },
+        { id: 7,  name: 'Patrícia Mendes',  interest: 'Cobertura',     source: 'Google Ads',   date: '3 dias atrás', status: 'Contatado',   reuniao: false, tags: ['Contatado'],                            type: 'planta'   },
+        { id: 8,  name: 'Bruno Ferreira',   interest: '2 quartos',     source: 'Facebook Ads', date: '3 dias atrás', status: 'Novo',        reuniao: false, tags: ['Novo', 'WhatsApp'],                    type: 'whatsapp' },
+        { id: 9,  name: 'Larissa Costa',    interest: '1 quarto',      source: 'Site direto',  date: '4 dias atrás', status: 'Qualificado', reuniao: false, tags: ['Qualificado', 'Formulário'],           type: 'form'     },
+        { id: 10, name: 'Diego Santos',     interest: '3 quartos',     source: 'Instagram',    date: '5 dias atrás', status: 'Novo',        reuniao: false, tags: ['Novo'],                                 type: 'planta'   },
       ],
       plantViews7d: [
-        { label: 'Seg', value: 22 },
-        { label: 'Ter', value: 31 },
-        { label: 'Qua', value: 26 },
-        { label: 'Qui', value: 38 },
-        { label: 'Sex', value: 34 },
-        { label: 'Sáb', value: 44 },
-        { label: 'Dom', value: 41 }
+        { label: 'Seg', value: 8  },
+        { label: 'Ter', value: 12 },
+        { label: 'Qua', value: 7  },
+        { label: 'Qui', value: 15 },
+        { label: 'Sex', value: 10 },
+        { label: 'Sáb', value: 18 },
+        { label: 'Dom', value: 14 },
       ],
-      plantsRanking: [
-        { name: 'Apartamento Garden 74,10m²', views: 68 },
-        { name: 'Apartamento 51,76m²', views: 54 },
-        { name: 'Apartamento Garden 64,78m²', views: 41 },
-        { name: 'Apartamento Garden 58,75m²', views: 32 },
-        { name: 'Apartamento 49,5m²', views: 19 }
-      ]
     }
   },
   computed: {
-    filteredEvents() {
-      if (this.activeTab === 'todos') return this.events
-      return this.events.filter((e) => e.type === this.activeTab)
+    filteredLeads() {
+      let list = this.leads
+      if (this.activeSegment === 'reuniao') {
+        list = list.filter(l => l.reuniao)
+      } else if (this.activeSegment !== 'todos') {
+        const seg = this.activeSegment
+        list = list.filter(l => l.status === seg || l.type === seg || l.tags.includes(seg))
+      }
+      const q = this.search.trim().toLowerCase()
+      if (q) {
+        list = list.filter(l =>
+          l.name.toLowerCase().includes(q) ||
+          l.source.toLowerCase().includes(q) ||
+          l.interest.toLowerCase().includes(q)
+        )
+      }
+      return list
+    }
+  },
+  methods: {
+    tagClass(tag) {
+      const map = {
+        'Novo': 'tag-novo', 'Contatado': 'tag-contatado',
+        'Qualificado': 'tag-qualificado', 'Perdido': 'tag-perdido',
+        'Formulário': 'tag-form', 'WhatsApp': 'tag-whatsapp',
+        'Reunião qualificada': 'tag-reuniao',
+      }
+      return map[tag] || ''
+    },
+    statusClass(status) {
+      const map = {
+        'Novo': 'badge-novo', 'Contatado': 'badge-contatado',
+        'Qualificado': 'badge-qualificado', 'Perdido': 'badge-perdido',
+      }
+      return map[status] || ''
     }
   }
 }
 </script>
 
 <style scoped>
-.atividades-header {
+/* ── ROOT ── */
+.ativ-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── STAT CARDS ── */
+.ativ-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.ativ-stat-card {
+  background: #fff;
+  border: 1px solid #e8e9eb;
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ativ-stat-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ativ-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.ativ-stat-sub {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ── BODY: main + sidebar ── */
+.ativ-body {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 14px;
+  align-items: start;
+}
+
+/* ── MAIN TABLE PANEL ── */
+.ativ-main {
+  background: #fff;
+  border: 1px solid #e8e9eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ativ-main-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
-  padding-top: 32px;
-  margin-bottom: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #f0f1f3;
 }
 
-.atividades-header .admin-section-title {
+.ativ-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
 }
 
-.atividades-tabs {
+.ativ-search-wrap {
   display: flex;
-  gap: 6px;
-  background: #eef0ee;
-  padding: 4px;
-  border-radius: 999px;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 7px 12px;
+  min-width: 260px;
 }
 
-.atividades-tab {
+.ativ-search-icon { color: #9ca3af; flex-shrink: 0; }
+
+.ativ-search {
   border: none;
   background: transparent;
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #71717a;
-  cursor: pointer;
+  outline: none;
+  font-size: 13px;
+  color: #111827;
+  width: 100%;
   font-family: inherit;
 }
 
-.atividades-tab.active {
-  background: #fff;
-  color: #18181b;
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
-}
+.ativ-search::placeholder { color: #9ca3af; }
 
-.admin-card-flush {
-  padding: 0;
-  overflow: hidden;
-}
+/* ── TABLE ── */
+.ativ-table-wrap { overflow-x: auto; }
 
-.atividade-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f2f2f3;
-}
-
-.atividade-row:last-child {
-  border-bottom: none;
-}
-
-.atividade-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.atividade-icon.type-form {
-  background: #fef3e2;
-  color: #b45309;
-}
-
-.atividade-icon.type-whatsapp {
-  background: #eafbe0;
-  color: #16a34a;
-}
-
-.atividade-icon.type-planta {
-  background: #f0f0f2;
-  color: #52525b;
-}
-
-.atividade-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.atividade-body p {
+.ativ-table {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13.5px;
-  color: #27272a;
-  line-height: 1.5;
 }
 
-.atividade-body strong {
-  font-weight: 600;
-  color: #18181b;
-}
-
-.atividade-meta {
-  font-size: 12px;
-  color: #a1a1aa;
-}
-
-.plant-rank-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #f2f2f3;
-}
-
-.plant-rank-row:last-child {
-  border-bottom: none;
-}
-
-.plant-rank-number {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #f0f1f0;
-  color: #52525b;
-  font-size: 11.5px;
+.ativ-table th {
+  text-align: left;
+  padding: 10px 20px;
+  font-size: 11px;
   font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f0f1f3;
+  white-space: nowrap;
+}
+
+.ativ-table td {
+  padding: 13px 20px;
+  border-bottom: 1px solid #f5f6f7;
+  vertical-align: middle;
+}
+
+.ativ-table tbody tr:last-child td { border-bottom: none; }
+.ativ-table tbody tr:hover td { background: #fafafa; }
+
+.ativ-td-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ativ-lead-name { font-weight: 600; color: #111827; white-space: nowrap; }
+.ativ-lead-meta { font-size: 12px; color: #9ca3af; }
+.ativ-td-source { color: #6b7280; white-space: nowrap; }
+.ativ-td-date   { color: #9ca3af; font-size: 12.5px; white-space: nowrap; }
+
+/* ── TAGS ── */
+.ativ-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.ativ-tag {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.tag-novo        { background: #eff6ff; color: #2563eb; }
+.tag-contatado   { background: #f0fdf4; color: #16a34a; }
+.tag-qualificado { background: #fefce8; color: #ca8a04; }
+.tag-perdido     { background: #fef2f2; color: #dc2626; }
+.tag-form        { background: #f5f3ff; color: #7c3aed; }
+.tag-whatsapp    { background: #ecfdf5; color: #059669; }
+.tag-reuniao     { background: #fff7ed; color: #ea580c; }
+
+/* ── STATUS BADGE ── */
+.ativ-badge {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge-novo        { background: #eff6ff; color: #2563eb; }
+.badge-contatado   { background: #f0fdf4; color: #16a34a; }
+.badge-qualificado { background: #fefce8; color: #ca8a04; }
+.badge-perdido     { background: #fef2f2; color: #dc2626; }
+
+.ativ-empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 32px !important;
+  font-size: 13px;
+}
+
+/* ── SIDEBAR FILTROS ── */
+.ativ-sidebar {
+  background: #fff;
+  border: 1px solid #e8e9eb;
+  border-radius: 12px;
+  padding: 18px 0 8px;
+}
+
+.ativ-sidebar-title {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #9ca3af;
+  padding: 0 18px 10px;
+  border-bottom: 1px solid #f0f1f3;
+  text-transform: uppercase;
+}
+
+.ativ-filter-list { list-style: none; margin: 0; padding: 6px 0; }
+
+.ativ-filter-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  justify-content: space-between;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  gap: 8px;
 }
 
-.plant-rank-name {
-  flex: 1;
-  font-size: 13.5px;
-  color: #18181b;
-  font-weight: 500;
+.ativ-filter-item:hover { background: #f9fafb; }
+
+.ativ-filter-item.active { background: #fef2f2; }
+.ativ-filter-item.active .ativ-filter-label { color: #dc2626; font-weight: 600; }
+
+.ativ-filter-label { font-size: 13px; color: #374151; }
+
+.ativ-filter-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  background: #f3f4f6;
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 22px;
+  text-align: center;
 }
 
-.plant-rank-value {
-  font-size: 12.5px;
-  color: #71717a;
+.ativ-filter-item.active .ativ-filter-count { background: #fee2e2; color: #dc2626; }
+
+/* ── SECTION TITLE ── */
+.ativ-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .ativ-stats   { grid-template-columns: repeat(2, 1fr); }
+  .ativ-body    { grid-template-columns: 1fr; }
+  .ativ-sidebar { order: -1; }
+}
+
+@media (max-width: 520px) {
+  .ativ-stats { grid-template-columns: 1fr 1fr; }
+  .ativ-main-header { flex-direction: column; align-items: flex-start; }
+  .ativ-search-wrap { width: 100%; min-width: unset; }
 }
 </style>

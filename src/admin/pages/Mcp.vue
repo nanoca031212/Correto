@@ -37,27 +37,33 @@
         </div>
       </div>
 
-      <h2 class="admin-section-title">O que a IA vai enxergar</h2>
-      <div class="admin-card">
-        <ul class="mcp-scope-list">
-          <li v-for="item in scope" :key="item.title">
-            <span class="mcp-scope-icon" v-html="item.icon"></span>
-            <div>
-              <strong>{{ item.title }}</strong>
-              <p>{{ item.description }}</p>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <div class="admin-grid mcp-info-grid">
+        <div class="mcp-info-col">
+          <h2 class="admin-section-title">O que a IA vai enxergar</h2>
+          <div class="admin-card h-100">
+            <ul class="mcp-scope-list">
+              <li v-for="item in scope" :key="item.title">
+                <span class="mcp-scope-icon" v-html="item.icon"></span>
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <p>{{ item.description }}</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-      <h2 class="admin-section-title">Como configurar</h2>
-      <div class="admin-card">
-        <ol class="mcp-steps">
-          <li>Abra as configurações de MCP/ferramentas do seu app de IA.</li>
-          <li>Adicione um novo servidor MCP usando o endpoint acima.</li>
-          <li>Cole a chave de acesso quando solicitado.</li>
-          <li>Pergunte algo como "resuma os leads da campanha desta semana".</li>
-        </ol>
+        <div class="mcp-info-col">
+          <h2 class="admin-section-title">Como configurar</h2>
+          <div class="admin-card h-100">
+            <ol class="mcp-steps">
+              <li>Abra as configurações de MCP/ferramentas do seu app de IA.</li>
+              <li>Adicione um novo servidor MCP usando o endpoint acima.</li>
+              <li>Cole a chave de acesso quando solicitado.</li>
+              <li>Pergunte algo como "resuma os leads da campanha desta semana".</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </template>
   </div>
@@ -186,6 +192,28 @@ export default {
   gap: 10px;
   font-size: 13.5px;
   color: #3f3f46;
+}
+
+.mcp-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.mcp-info-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.h-100 {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .mcp-info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {

@@ -121,7 +121,7 @@ export default {
     height: { type: Number, default: 220 },
     lineColor: { type: String, default: '#6fd93f' },
     dotColor: { type: String, default: '' },
-    ringColor: { type: String, default: 'rgba(255,255,255,0.55)' },
+    ringColor: { type: String, default: 'rgba(255,255,255,0.85)' },
     graphLineThickness: { type: Number, default: 2.5 },
     dotSize: { type: Number, default: 6 },
     curved: { type: Boolean, default: true },
@@ -274,7 +274,7 @@ export default {
 <style scoped>
 .sg {
   width: 100%;
-  background: #0b0b0d;
+  background: #ffffff;
   border-radius: 16px;
   padding: 22px 22px 18px;
 }
@@ -317,7 +317,7 @@ export default {
 }
 
 .sg-grid line {
-  stroke: rgba(255, 255, 255, 0.1);
+  stroke: rgba(60, 60, 60, 0.45);
   stroke-width: 1;
 }
 
@@ -347,7 +347,7 @@ export default {
   position: absolute;
   transform: translate(-50%, calc(-100% - 14px));
   background: #1c1c1f;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   padding: 8px 12px;
   display: flex;
@@ -355,7 +355,7 @@ export default {
   gap: 2px;
   white-space: nowrap;
   pointer-events: none;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
   z-index: 2;
 }
 
@@ -382,7 +382,7 @@ export default {
 
 .sg-labels span {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(60, 60, 60, 0.65);
   flex: 1;
   text-align: center;
   overflow: hidden;

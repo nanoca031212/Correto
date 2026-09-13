@@ -2,7 +2,6 @@
   <div class="admin-shell">
     <aside class="admin-sidebar">
       <div class="admin-brand">
-        <span class="admin-brand-avatar">JR</span>
         <div class="admin-brand-text">
           <strong>Jardins Residence</strong>
           <router-link to="/" class="admin-brand-link">Ver site</router-link>
@@ -20,6 +19,11 @@
           <router-link to="/admin/atividades" class="admin-nav-item">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V10M11 19V5M18 19v-7"/></svg>
             <span>Atividades</span>
+          </router-link>
+
+          <router-link to="/admin/plantas" class="admin-nav-item">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2l8 4v6c0 5.55-3.84 10.74-8 12-4.16-1.26-8-6.45-8-12V6l8-4z"/></svg>
+            <span>Desempenho de Plantas</span>
           </router-link>
         </div>
 

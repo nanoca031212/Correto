@@ -23,6 +23,11 @@ const routes = [
         component: () => import('../admin/pages/Atividades.vue')
       },
       {
+        path: 'plantas',
+        name: 'admin-plantas',
+        component: () => import('../admin/pages/Plantas.vue')
+      },
+      {
         path: 'mcp',
         name: 'admin-mcp',
         component: () => import('../admin/pages/Mcp.vue')

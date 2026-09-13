@@ -8,12 +8,7 @@
   >
     <div class="container">
       <div class="header-content">
-        <!-- Logo minimalista -->
-        <div class="logo">
-          <h1 class="logo-text">
-            Jardins <span class="text-accent">Residence</span>
-          </h1>
-        </div>
+
 
         <!-- Menu Desktop minimalista -->
         <nav class="nav-desktop">
