@@ -57,10 +57,23 @@
           <h2 class="admin-section-title">Como configurar</h2>
           <div class="admin-card h-100">
             <ol class="mcp-steps">
-              <li>Abra as configurações de MCP/ferramentas do seu app de IA.</li>
-              <li>Adicione um novo servidor MCP usando o endpoint acima.</li>
-              <li>Cole a chave de acesso quando solicitado.</li>
-              <li>Pergunte algo como "resuma os leads da campanha desta semana".</li>
+              <li>Abra as configurações do <strong>Claude Desktop</strong> (ou outra IA com suporte a MCP).</li>
+              <li>Localize o arquivo <code>claude_desktop_config.json</code> e adicione:
+                <pre class="mcp-code" v-pre>{
+  "mcpServers": {
+    "CorretoLandingPage": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://correto-zeta.vercel.app/api/sse"
+      ]
+    }
+  }
+}</pre>
+              </li>
+              <li>Reinicie o Claude Desktop. O servidor MCP aparecerá conectado.</li>
+              <li>Pergunte algo como: <em>"Qual planta está convertendo mais?"</em> ou <em>"Resuma os leads desta semana."</em></li>
             </ol>
           </div>
         </div>
@@ -79,12 +92,12 @@ export default {
   data() {
     return {
       connected: false,
-      endpoint: 'https://mcp.jardinsresidence.com.br/sse',
+      endpoint: 'https://correto-zeta.vercel.app/api/sse',
       apiKey: 'jr_mcp_8f2c1a9d4e6b7f30',
       scope: [
-        { icon: ICON_DOC, title: 'Conteúdo da página', description: 'Textos, seções, plantas, fotos e vídeos publicados no site.' },
-        { icon: ICON_CAMPAIGN, title: 'Campanha', description: 'Quais campanhas estão conectadas, orçamento e criativos em uso.' },
-        { icon: ICON_TRACK, title: 'Tracking', description: 'Eventos do Pixel, conversões e desempenho por seção do site.' }
+        { icon: ICON_DOC, title: 'Resumo executivo', description: 'Total de leads, CPL médio, orçamento diário e melhores plantas.' },
+        { icon: ICON_CAMPAIGN, title: 'Campanhas e Orçamento', description: 'Status, custo por lead e leads gerados por campanha (Meta Ads, Google Ads).' },
+        { icon: ICON_TRACK, title: 'Desempenho das Plantas', description: 'Acessos, fotos visualizadas e taxa de conversão por planta e tour 3D.' }
       ]
     }
   },
@@ -189,9 +202,36 @@ export default {
   padding-left: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: 13.5px;
   color: #3f3f46;
+}
+
+.mcp-steps code {
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  color: #6366f1;
+}
+
+.mcp-steps em {
+  color: #374151;
+  font-style: italic;
+}
+
+.mcp-code {
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.7;
+  margin: 8px 0 0;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .mcp-info-grid {
