@@ -4,7 +4,10 @@
     <div class="admin-grid">
       <div class="admin-card platform-card" v-for="platform in platforms" :key="platform.name">
         <div class="platform-header">
-          <span class="platform-icon" v-html="platform.icon"></span>
+          <span class="platform-icon" v-if="platform.iconSrc">
+            <img :src="platform.iconSrc" :alt="platform.name" />
+          </span>
+          <span class="platform-icon" v-else v-html="platform.icon"></span>
           <div class="platform-meta">
             <strong>{{ platform.name }}</strong>
             <span class="admin-badge" :class="platform.connected ? 'admin-badge-success' : 'admin-badge-off'">
@@ -118,7 +121,6 @@
 </template>
 
 <script>
-const ICON_META = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="28" height="28"><path fill="#0668e1" d="M966.5 289.4c-47.5-73.4-129.5-115.1-224.2-115.1-95.2 0-184.2 46.1-230.3 120.7C465.9 220.4 376.9 174.3 281.7 174.3c-94.8 0-176.8 41.7-224.2 115.1-55.9 86.8-51.5 204.3 12.1 294.6l.3.2c56.8 82.5 146.4 135 244 153a339.7 339.7 0 0 0 198.1-34.7 340.2 340.2 0 0 0 198.1 34.7c97.7-18 187.2-70.5 244-153l.3-.2c63.6-90.3 68-207.8 12.1-294.6zM512 590.2c28.2 40.5 73.6 63.8 123.6 63.8 84.1 0 152.3-68.2 152.3-152.3 0-84.1-68.2-152.3-152.3-152.3-50 0-95.4 23.3-123.6 63.8-28.2-40.5-73.6-63.8-123.6-63.8-84.1 0-152.3 68.2-152.3 152.3 0 84.1 68.2 152.3 152.3 152.3 50 0 95.4-23.3 123.6-63.8z"/></svg>'
 const ICON_GOOGLE = '<svg viewBox="0 0 48 48" width="28" height="28"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.7 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.14 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>'
 const ICON_TIKTOK = '<svg viewBox="0 0 448 512" width="24" height="24" fill="#000000"><path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z"/></svg>'
 const ICON_PIXEL = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/></svg>'
@@ -131,7 +133,7 @@ export default {
     return {
       modal: { open: false, track: null, code: '' },
       platforms: [
-        { name: 'Meta Ads', icon: ICON_META, connected: true },
+        { name: 'Meta Ads', iconSrc: '/meta.svg', connected: true },
         { name: 'Google Ads', icon: ICON_GOOGLE, connected: false },
         { name: 'TikTok Ads', icon: ICON_TIKTOK, connected: false }
       ],
@@ -191,6 +193,12 @@ export default {
   flex-shrink: 0;
   width: 32px;
   height: 32px;
+}
+
+.platform-icon img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 
 .platform-meta {
