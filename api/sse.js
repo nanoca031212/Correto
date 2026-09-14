@@ -5,6 +5,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { leads } from "../src/admin/data/leads.js";
+import { summary as activitySummary, plantViews7d, segments } from "../src/admin/data/activity.js";
 
 // Banco de dados de contexto do empreendimento Correto / Jardins Residence
 const DB = {
@@ -117,6 +118,19 @@ export default async function handler(req, res) {
     "Retorna a lista de leads reais (a mesma base exibida em /admin/atividades): contatos que preencheram o formulário, clicaram no WhatsApp ou tiveram alguma atividade registrada - nome, e-mail, telefone, interesse, origem, status, tags e mensagem. NAO inclui simples visitantes que apenas entraram/visualizaram a página sem essa atividade.",
     {},
     async () => ({ content: [{ type: "text", text: JSON.stringify(leads, null, 2) }] })
+  );
+
+  // Tool 8: Visao geral de Atividades (mesma tela /admin/atividades)
+  server.tool(
+    "get_activity_overview",
+    "Retorna a visao geral da pagina /admin/atividades: resumo agregado de leads (total, contatados, qualificados, reuniao qualificada), segmentacao por status/origem/tipo de atividade, e a serie diaria de visualizacoes de plantas dos ultimos 7 dias. Use get_leads para o detalhe individual de cada contato.",
+    {},
+    async () => ({
+      content: [{
+        type: "text",
+        text: JSON.stringify({ summary: activitySummary, segments, plant_views_last_7_days: plantViews7d }, null, 2)
+      }]
+    })
   );
 
   const transport = new SSEServerTransport('/api/messages', res);
