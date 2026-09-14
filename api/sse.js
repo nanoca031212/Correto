@@ -123,12 +123,12 @@ export default async function handler(req, res) {
   // Tool 8: Visao geral de Atividades (mesma tela /admin/atividades)
   server.tool(
     "get_activity_overview",
-    "Retorna a visao geral da pagina /admin/atividades: resumo agregado de leads (total, contatados, qualificados, reuniao qualificada), segmentacao por status/origem/tipo de atividade, e a serie diaria de visualizacoes de plantas dos ultimos 7 dias. Use get_leads para o detalhe individual de cada contato.",
+    "Retorna a visao geral completa da pagina /admin/atividades: resumo agregado de leads (total, contatados, qualificados, reuniao qualificada), segmentacao por status/origem/tipo de atividade, a serie diaria de visualizacoes de plantas dos ultimos 7 dias, e a lista completa de leads/clientes (nome, e-mail, telefone, interesse, origem, status, tags e mensagem de cada contato).",
     {},
     async () => ({
       content: [{
         type: "text",
-        text: JSON.stringify({ summary: activitySummary, segments, plant_views_last_7_days: plantViews7d }, null, 2)
+        text: JSON.stringify({ summary: activitySummary, segments, plant_views_last_7_days: plantViews7d, leads }, null, 2)
       }]
     })
   );
