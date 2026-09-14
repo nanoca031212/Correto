@@ -5,7 +5,37 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { leads } from "../src/admin/data/leads.js";
-import { summary as activitySummary, plantViews7d, segments } from "../src/admin/data/activity.js";
+
+// Mesmos valores de src/admin/data/activity.js (usados na tela
+// /admin/atividades) - inline aqui em vez de importar, pra nao
+// depender do tracing de multiplos arquivos cruzados pelo build
+// serverless da Vercel.
+const activitySummary = [
+  { label: 'Total de leads', value: '20', sub: 'contatos únicos' },
+  { label: 'Contatados', value: '6', sub: 'aguardando retorno' },
+  { label: 'Qualificados', value: '3', sub: 'alto interesse' },
+  { label: 'Reunião qualificada', value: '4', sub: 'formulário + WhatsApp' }
+];
+const plantViews7d = [
+  { label: 'Seg', value: 8 },
+  { label: 'Ter', value: 12 },
+  { label: 'Qua', value: 7 },
+  { label: 'Qui', value: 15 },
+  { label: 'Sex', value: 10 },
+  { label: 'Sáb', value: 18 },
+  { label: 'Dom', value: 14 }
+];
+const segments = [
+  { id: 'todos', label: 'Todos', count: 20 },
+  { id: 'Novo', label: 'Novo lead', count: 8 },
+  { id: 'Contatado', label: 'Contatado', count: 6 },
+  { id: 'Qualificado', label: 'Qualificado', count: 3 },
+  { id: 'Perdido', label: 'Perdido', count: 3 },
+  { id: 'reuniao', label: 'Reunião qualificada', count: 4 },
+  { id: 'form', label: 'Formulário', count: 9 },
+  { id: 'whatsapp', label: 'WhatsApp', count: 7 },
+  { id: 'planta', label: 'Viu planta', count: 6 }
+];
 
 // Banco de dados de contexto do empreendimento Correto / Jardins Residence
 const DB = {
