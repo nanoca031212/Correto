@@ -4,6 +4,7 @@
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { leads } from "../src/admin/data/leads.js";
 
 // Banco de dados de contexto do empreendimento Correto / Jardins Residence
 const DB = {
@@ -105,6 +106,14 @@ export default async function handler(req, res) {
     "Retorna informações gerais sobre o site e o empreendimento, incluindo URL, nome e seções disponíveis.",
     {},
     async () => ({ content: [{ type: "text", text: JSON.stringify(DB.site, null, 2) }] })
+  );
+
+  // Tool 7: Leads/clientes (mesma base usada no admin, em /admin/atividades)
+  server.tool(
+    "get_leads",
+    "Retorna a lista completa de leads/clientes captados pelo site: nome, e-mail, telefone, interesse, origem, status, tags e mensagem enviada no formulário de contato.",
+    {},
+    async () => ({ content: [{ type: "text", text: JSON.stringify(leads, null, 2) }] })
   );
 
   const transport = new SSEServerTransport('/api/messages', res);
