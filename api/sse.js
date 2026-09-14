@@ -36,7 +36,10 @@ const DB = {
     conversions_api: { active: false, events: [] }
   },
   summary: {
-    total_leads: 191,
+    // Mesma contagem da lista real de leads (get_leads) - nao um numero
+    // solto desencontrado, pra IA nunca reportar um total diferente da
+    // lista de contatos que ela mesma pode listar.
+    total_leads: leads.length,
     total_budget_daily: 'R$ 250,00',
     avg_cpl: 'R$ 10,47',
     most_viewed_plan: 'Studio - 45m²',
@@ -63,7 +66,7 @@ export default async function handler(req, res) {
   // Tool 1: Resumo geral
   server.tool(
     "get_summary",
-    "Retorna um resumo executivo do desempenho geral da landing page e campanhas. Use para obter uma visão rápida.",
+    "Retorna um resumo executivo do desempenho geral da landing page e campanhas. O campo total_leads conta apenas leads reais (mesma lista da tool get_leads) - nao inclui visitantes que so visualizaram a pagina sem preencher formulario, clicar no WhatsApp ou gerar alguma atividade registrada.",
     {},
     async () => ({ content: [{ type: "text", text: JSON.stringify(DB.summary, null, 2) }] })
   );
@@ -111,7 +114,7 @@ export default async function handler(req, res) {
   // Tool 7: Leads/clientes (mesma base usada no admin, em /admin/atividades)
   server.tool(
     "get_leads",
-    "Retorna a lista completa de leads/clientes captados pelo site: nome, e-mail, telefone, interesse, origem, status, tags e mensagem enviada no formulário de contato.",
+    "Retorna a lista de leads reais (a mesma base exibida em /admin/atividades): contatos que preencheram o formulário, clicaram no WhatsApp ou tiveram alguma atividade registrada - nome, e-mail, telefone, interesse, origem, status, tags e mensagem. NAO inclui simples visitantes que apenas entraram/visualizaram a página sem essa atividade.",
     {},
     async () => ({ content: [{ type: "text", text: JSON.stringify(leads, null, 2) }] })
   );
