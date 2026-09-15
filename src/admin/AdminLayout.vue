@@ -1,14 +1,42 @@
 <template>
   <div class="admin-shell">
-    <aside class="admin-sidebar">
+    <!-- Barra fixa só no mobile: marca + botão de abrir o menu (direita) -->
+    <header class="admin-mobile-bar">
+      <strong>Jardins Residence</strong>
+      <button
+        class="admin-menu-btn"
+        type="button"
+        aria-label="Abrir menu"
+        @click="sidebarOpen = true"
+      >
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </header>
+
+    <!-- Fundo escurecido atrás do menu quando aberto (mobile) -->
+    <div
+      v-if="sidebarOpen"
+      class="admin-backdrop"
+      @click="sidebarOpen = false"
+    ></div>
+
+    <aside class="admin-sidebar" :class="{ 'admin-sidebar-open': sidebarOpen }">
       <div class="admin-brand">
         <div class="admin-brand-text">
           <strong>Jardins Residence</strong>
           <router-link to="/" class="admin-brand-link">Ver site</router-link>
         </div>
+        <button
+          class="admin-sidebar-close"
+          type="button"
+          aria-label="Fechar menu"
+          @click="sidebarOpen = false"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
       </div>
 
-      <nav class="admin-nav">
+      <nav class="admin-nav" @click="sidebarOpen = false">
         <div class="admin-nav-group">
           <span class="admin-nav-group-label">Visão geral</span>
           <router-link to="/admin/dashboard" class="admin-nav-item">
@@ -61,7 +89,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const PAGE_META = {
@@ -99,7 +127,8 @@ export default {
     const pageMeta = computed(
       () => PAGE_META[route.name] || { eyebrow: 'Painel', title: 'Corretor', subtitle: '' }
     )
-    return { pageMeta }
+    const sidebarOpen = ref(false)
+    return { pageMeta, sidebarOpen }
   }
 }
 </script>
@@ -411,25 +440,99 @@ export default {
   color: #a1a1aa;
 }
 
+/* Barra fixa do topo e botao de menu: escondidos no desktop */
+.admin-mobile-bar {
+  display: none;
+}
+
+.admin-menu-btn,
+.admin-sidebar-close {
+  background: none;
+  border: none;
+  padding: 6px;
+  color: #18181b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-sidebar-close {
+  display: none;
+}
+
+.admin-backdrop {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .admin-shell {
     flex-direction: column;
   }
 
+  /* Barra fixa: marca a esquerda, icone de menu a direita */
+  .admin-mobile-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    padding: 0 16px;
+    background: #fff;
+    border-bottom: 1px solid #ececec;
+    z-index: 40;
+  }
+
+  .admin-mobile-bar strong {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #18181b;
+  }
+
+  /* Sidebar vira uma gaveta fixa, fora da tela ate abrir */
   .admin-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 84%;
+    max-width: 300px;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .admin-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .admin-sidebar-close {
+    display: flex;
+  }
+
+  .admin-brand {
+    justify-content: space-between;
   }
 
   .admin-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 14px;
+    flex-direction: column;
   }
 
+  .admin-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 45;
+  }
+
+  /* Espaco pra barra fixa nao cobrir o conteudo */
   .admin-content {
-    padding: 22px;
+    padding: 76px 22px 22px;
   }
 }
 </style>
