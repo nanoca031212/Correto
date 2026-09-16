@@ -197,31 +197,35 @@ export default {
       })
       globeGroup.add(new THREE.Points(dotGeo, dotMat))
 
-      // Atmosfera (glow)
-      const atmoGeo = new THREE.SphereGeometry(radius * 1.18, 48, 48)
-      const atmoMat = new THREE.ShaderMaterial({
-        uniforms: { glowColor: { value: new THREE.Color(0x6fd93f) } },
-        vertexShader: `
-          varying vec3 vNormal;
-          void main() {
-            vNormal = normalize(normalMatrix * normal);
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          }
-        `,
-        fragmentShader: `
-          varying vec3 vNormal;
-          uniform vec3 glowColor;
-          void main() {
-            float intensity = pow(0.55 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
-            gl_FragColor = vec4(glowColor, intensity);
-          }
-        `,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthWrite: false
-      })
-      globeGroup.add(new THREE.Mesh(atmoGeo, atmoMat))
+      // Atmosfera (glow) - no mobile o blending aditivo fica estranho
+      // (halo esverdeado grande demais pro layout empilhado), entao
+      // so adiciona em telas maiores.
+      if (window.innerWidth > 720) {
+        const atmoGeo = new THREE.SphereGeometry(radius * 1.18, 48, 48)
+        const atmoMat = new THREE.ShaderMaterial({
+          uniforms: { glowColor: { value: new THREE.Color(0x6fd93f) } },
+          vertexShader: `
+            varying vec3 vNormal;
+            void main() {
+              vNormal = normalize(normalMatrix * normal);
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vNormal;
+            uniform vec3 glowColor;
+            void main() {
+              float intensity = pow(0.55 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.5);
+              gl_FragColor = vec4(glowColor, intensity);
+            }
+          `,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+          transparent: true,
+          depthWrite: false
+        })
+        globeGroup.add(new THREE.Mesh(atmoGeo, atmoMat))
+      }
 
       // Destino (Contagem - MG)
       globeGroup.add(this.makeMarker(destVec, 0xffffff, 0.028))

@@ -124,7 +124,7 @@ export default {
     ringColor: { type: String, default: 'rgba(255,255,255,0.85)' },
     graphLineThickness: { type: Number, default: 2.5 },
     dotSize: { type: Number, default: 6 },
-    curved: { type: Boolean, default: true },
+    curved: { type: Boolean, default: false },
     gradientFade: { type: Boolean, default: false },
     showDots: { type: Boolean, default: true },
     showGrid: { type: Boolean, default: true },
